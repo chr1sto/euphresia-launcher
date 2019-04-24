@@ -1,0 +1,22 @@
+<div class="logo-container">
+    <img src="../assets/logo.png" class="logo">
+</div>
+<img src="../assets/reg_cont.png" class="bg">
+<div class="content-container">
+    <router-outlet></router-outlet>
+</div>
+<div class="window-actions">
+    <img class="settings-logo" src="../assets/baseline-settings-20px.svg" (click)="openSettings()">
+    <img class="minimize-logo" src="../assets/baseline-minimize-24px.svg" (click)="minimize()">
+    <img class="close-logo" src="../assets/baseline-close-24px.svg" (click)="close()">
+</div>
+
+<div class="auth-actions" *ngIf="this.authenticationService.isAuthenticated()">
+    <img class="user-logo" src="../assets/baseline-person-24px.svg">
+    <img class="expand-logo" src="../assets/baseline-expand_more-24px.svg" (click)="this.toggleNav()">
+</div>
+
+<nav role="navigation" id="nav">
+    <img class="expand-logo" src="../assets/baseline-expand_less-24px.svg" (click)="this.toggleNav()">
+    <button (click)="logout()">Logout</button>
+</nav>

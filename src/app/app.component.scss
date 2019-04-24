@@ -1,0 +1,139 @@
+.bg
+{
+    width: 800px;
+    background-color: transparent;
+    color: transparent;
+}
+
+.logo-container
+{
+    height: 60px;
+}
+
+.logo
+{
+    height: 150px;
+    position: absolute;
+    left: 315px;
+}
+
+.content-container
+{
+    position: absolute;
+    top: 160px;
+    left: 80px;
+    width: 640px;
+    height: 400px;
+    -webkit-app-region: no-drag;
+}
+
+.window-actions
+{
+    position: absolute;
+    top: 100px;
+    right: 150px;
+    width: 96px;
+    height: 30px;
+    -webkit-app-region: no-drag;
+}
+
+.settings-logo
+{
+    width: 32px;
+    height: 32px;
+}
+
+.settings-logo:hover
+{
+    cursor: pointer;
+}
+
+.minimize-logo
+{
+    width: 32px;
+    height: 32px;
+}
+
+.minimize-logo:hover
+{
+    cursor: pointer;
+}
+
+.close-logo
+{
+    width: 32px;
+    height: 32px;
+}
+
+.close-logo:hover
+{
+    cursor: pointer;
+}
+
+.auth-actions
+{
+    position: absolute;
+    top: 100px;
+    left: 50px;
+    width: 64px;
+    height: 30px;
+    -webkit-app-region: no-drag;
+}
+
+.user-logo
+{
+    width: 32px;
+    height: 32px;
+}
+
+.expand-logo
+{
+    width: 32px;
+    height: 32px;
+}
+
+
+#nav
+{
+    visibility: hidden;
+    position: absolute;
+    top: 100px;
+    left: 82px;
+    width: 100px;
+    height: 100px;
+    padding: 3px;
+    padding-top: 0px;
+    background-color: rgb(206, 158, 117);
+    -webkit-box-shadow: 10px 10px 18px -6px rgba(0,0,0,0.75);
+    -webkit-app-region: no-drag !important;
+    border: 1px solid transparent;
+    border-radius: 4px;
+}
+
+#nav button
+{
+    margin-top: 20px;
+    width: 100%;
+    height: 30px;
+    background-color: rgb(61, 44, 29);
+    border: 1px solid transparent;
+    border-radius: 4px;   
+    font-size: 1.2vw;
+    font-family: 'Roboto Slab', serif;
+    color: rgb(183, 155, 127)
+}
+#nav button:focus 
+{ 
+    outline: none; 
+}
+
+button:hover
+{
+    cursor: pointer;
+    background-color: rgba(88, 66, 43, 0.9) !important;
+}
+
+.expand-logo:hover
+{
+    cursor: pointer;
+}
