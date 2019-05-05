@@ -1,0 +1,65 @@
+<div class="wrapper">
+    <h1>Register</h1>
+    <div class="register-container">
+        <table>
+            <tr>
+                <td class="label">
+                    Email
+                </td>
+                <td>
+                    <input type="email" [(ngModel)]="email">
+                </td>
+            </tr>
+            <tr>
+                <td class="label">
+                    Password
+                </td>
+                <td>
+                    <input type="password" [(ngModel)]="password">
+                </td>
+            </tr>
+            <tr>
+                <td class="label">
+                    Confirm Password
+                </td>
+                <td>
+                    <input type="password" [(ngModel)]="confirmedPassword">
+                </td>
+            </tr>
+            <tr>
+                <td class="label">
+                    Secret Question
+                </td>
+                <td>
+                    <input type="text" [(ngModel)]="secretQuestion">
+                </td>
+            </tr>
+            <tr>
+                <td class="label">
+                    Secret Answer
+                </td>
+                <td>
+                    <input type="text" [(ngModel)]="secretAnswer">
+                </td>
+            </tr>
+        </table>
+        <div *ngIf="hasErrors" class="errors">
+            <p *ngFor="let item of errorMessages" class="error">{{item}}</p>
+        </div>
+        <div class="tos-container">
+            <label class="tos-agreement">
+                <input type="checkbox">
+                I have read and agree to the Terms of Service.
+            </label>
+        </div>            
+        <div class="register-button-container">
+            <button (click)="this.submit()">Register</button>
+        </div>
+        <div class="login-wrapper">
+            <p class="login">You already got an account? Login <a class="login-link" routerLink="/login">here</a>.</p>
+        </div>
+        <div *ngIf="success" class="success">
+            <p>Successfully created an account. Redirecting...</p>
+        </div>
+    </div>
+</div>

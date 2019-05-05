@@ -23,6 +23,7 @@ import { AuthGuardService } from './guards/auth-guard';
 import { AuthenticationService } from './services/auth.service';
 import { AccountService, API_BASE_URL } from './services/generated.services';
 import { JwtInterceptor, JwtHelperService, JwtModule } from '@auth0/angular-jwt';
+import { RegisterComponent } from './components/register/register.component';
 
 // AoT requires an exported function for factories
 export function HttpLoaderFactory(http: HttpClient) {
@@ -47,7 +48,8 @@ export function getToken(): string {
     AppComponent,
     HomeComponent,
     WebviewDirective,
-    LoginComponent
+    LoginComponent,
+    RegisterComponent
   ],
   imports: [
     BrowserModule,

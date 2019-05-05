@@ -82,6 +82,10 @@
     "zone.js": "0.8.29"
   },
   "dependencies": {
-    "@auth0/angular-jwt": "^2.1.0"
+    "@auth0/angular-jwt": "^2.1.0",
+    "@types/request": "^2.48.1",
+    "electron-dl": "^1.14.0",
+    "ngx-smart-modal": "^7.1.1",
+    "zlib": "^1.0.5"
   }
 }

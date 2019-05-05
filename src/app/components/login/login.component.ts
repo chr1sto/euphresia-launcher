@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AuthenticationService } from '../../services/auth.service';
 import { Router } from '@angular/router';
+import { ElectronService } from '../../providers/electron.service';
 
 @Component({
   selector: 'login',
@@ -38,5 +39,4 @@ export class LoginComponent implements OnInit {
             }
         )
   }
-
 }
