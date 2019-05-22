@@ -1,0 +1,80 @@
+.slider-test
+{
+    position: relative;
+    top: 100px;
+    left: 75px;
+}
+
+.button-start-color
+{
+    position: relative;
+    top: 97px;
+    left: 435px;
+    background-image: url("../assets/play.png");
+    width: 153px;
+    height: 122px;
+}
+
+.button-start-color:hover
+{
+    background-image: url("../assets/play_hov.png");
+    cursor: pointer;
+}
+
+.button-start-grey
+{
+    position: relative;
+    top: 97px;
+    left: 435px;
+    background-image: url("../assets/play_disabled.png");
+    width: 153px;
+    height: 122px;
+}
+
+.button-patch-color
+{
+    position: relative;
+    top: 97px;
+    left: 435px;
+    background-image: url("../assets/patch.png");
+    width: 153px;
+    height: 122px;
+}
+
+.button-patch-color:hover
+{
+    background-image: url("../assets/patch_hov.png");
+    cursor: pointer;
+}
+
+.button-patch-grey
+{
+    position: relative;
+    top: 97px;
+    left: 435px;
+    background-image: url("../assets/patch_disabled.png");
+    width: 153px;
+    height: 122px;
+}
+
+
+.progress-right
+{
+    position: absolute;
+    top: 468px;
+    left: 590px;
+}
+
+.progress-left
+{
+    position: absolute;
+    top: 468px;
+    left: 52px;
+}
+
+p{
+    position: absolute;
+    left:56px;
+    top:435px;
+    color: white;
+}

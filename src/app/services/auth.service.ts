@@ -4,17 +4,20 @@ import { AccountService, LoginViewModel, RegisterViewModel } from './generated.s
 import { HttpClient } from '@angular/common/http';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { map } from 'rxjs/operators';
+import { ElectronService } from '../providers/electron.service';
 
 @Injectable()
 export class AuthenticationService
 {
     userInfo : UserInfo;
 
-    constructor(private _http: HttpClient, private _accountService: AccountService) {
+    constructor(private _http: HttpClient, private _accountService: AccountService,private _electron: ElectronService) {
         if(this.isAuthenticated())
         {
             this.isLoggedIn = true;
             this.userInfo = this.getUserInfo();
+            var token = localStorage.getItem('token');
+            this._electron.ipcRenderer.send('token',token);
         }
     }
 
@@ -37,6 +40,7 @@ export class AuthenticationService
                         console.log(token.data);
                         this.userInfo = this.getUserInfo();
                         this.isLoggedIn = true;
+                        this._electron.ipcRenderer.send('token',token.data);
                     }
                 }
             )
@@ -87,5 +91,6 @@ export class AuthenticationService
         localStorage.removeItem('token');
         this.isLoggedIn = false;
         this.userInfo = null;
+        this._electron.ipcRenderer.send('token',null);
     }
 }

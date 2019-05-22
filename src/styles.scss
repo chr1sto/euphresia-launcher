@@ -8,3 +8,24 @@ html, body {
   height: 100%;
   background-color: transparent;
 }
+
+modal
+{
+  background-color: white;
+  display: none;
+  position: fixed;
+  top: 200px;
+  left: 312px;
+  width: 400px;
+  height: 300px;
+  z-index: 4;
+  overflow: auto;
+  -webkit-box-shadow: 7px 4px 32px 0px rgba(0,0,0,0.75);
+  -moz-box-shadow: 7px 4px 32px 0px rgba(0,0,0,0.75);
+  box-shadow: 7px 4px 32px 0px rgba(0,0,0,0.75);
+}
+
+.modal-open
+{
+  overflow: hidden;
+}

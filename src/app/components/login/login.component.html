@@ -1,16 +1,18 @@
-<div class="wrapper">
-    <h1>Login</h1>
-    <input type="email" placeholder="Email" [(ngModel)]="email">
-    <input type="password" placeholder="Password" [(ngModel)]="password">
-    <div *ngIf="hasErrors" class="errors">
-        <p class="error">The provided credentials are either wrong or the account does not exist!</p>
+<div class="outer">
+    <div class="wrapper">
+        <h1>Login</h1>
+        <input type="email" placeholder="Email" [(ngModel)]="email">
+        <input type="password" placeholder="Password" [(ngModel)]="password">
+        <div *ngIf="hasErrors" class="errors">
+            <p class="error">The provided credentials are either wrong or the account does not exist!</p>
+        </div>
+        <div>
+            <p class="register">Don't have an Account yet? Create one <a class="register-link" routerLink="/register">here</a>.</p>
+        </div>
+        <button (click)="login()">Login</button>
+        <div *ngIf="success" class="success">
+            <p>Logging you in...</p>
+        </div>
+        <p>{{errorText}}</p>
     </div>
-    <div>
-        <p class="register">Don't have an Account yet? Create one <a class="register-link" routerLink="/register">here</a>.</p>
-    </div>
-    <button (click)="login()">Login</button>
-    <div *ngIf="success" class="success">
-        <p>Logging you in...</p>
-    </div>
-    <p>{{errorText}}</p>
 </div>

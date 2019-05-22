@@ -1,139 +1,339 @@
-.bg
+.this
 {
-    width: 800px;
+    width: 1024px;
+    height: 576px;
     background-color: transparent;
     color: transparent;
+    background-image: url('../assets/bg.png');
 }
 
-.logo-container
+.top-panel{
+    position: relative;
+    width: 874px;
+    left: 75px;
+    top: 65px;
+}
+
+.right-top
 {
+    float: right;
+    display: flex;
+}
+
+.icon-announce
+{
+    background-image: url("../assets/announce.png");
+    width: 50px;
+    height: 52px;
+}
+
+.icon-announce:hover{
+    background-image: url("../assets/announce_hov.png");
+    cursor: pointer;
+}
+
+.icon-option
+{
+    background-image: url("../assets/option.png");
+    width: 51px;
+    height: 51px;
+}
+
+.icon-option:hover
+{
+    background-image: url("../assets/option_hov.png");
+    cursor: pointer;
+}
+
+.icon-minimize
+{
+    margin-top: 20px;
+    background-image: url("../assets/minimaze.png");
+    width: 40px;
+    height: 25px;
+}
+
+.icon-minimize:hover
+{
+    background-image: url("../assets/minimaze_hov.png");
+    cursor: pointer;
+}
+
+.icon-close
+{
+    margin-top: 4px;
+    background-image: url("../assets/close.png");
+    width: 41px;
+    height: 41px;
+}
+
+.icon-close:hover
+{
+    background-image: url("../assets/close_hov.png");
+    cursor: pointer;
+}
+
+.left-top
+{
+    float:left;
+    display: flex;
+}
+
+.icon-profile
+{
+    background-image: url("../assets/profil.png");
+    width: 40px;
+    height: 43px;
+}
+
+.icon-profile:hover
+{
+    background-image: url("../assets/profil_hov.png");
+    cursor: pointer;
+}
+
+.icon-expand-profile
+{
+    margin-top:10px;
+    background-image: url("../assets/arrow2.png");
+    width: 37px;
+    height: 27px;
+}
+
+.icon-expand-profile:hover
+{
+    background-image: url("../assets/arrow2_hov.png");
+    cursor: pointer;
+}
+
+.icon-select-acc
+{
+    margin-top:2px;
+    background-image: url("../assets/selectacc.png");
+    width: 39px;
+    height: 38px;
+}
+
+.icon-select-acc:hover
+{
+    background-image: url("../assets/selectacc_hov.png");
+    cursor: pointer;
+}
+
+.user
+{
+    width: 180px;
+    margin-top: 10px;
+    font-size: 20px;
+    font-family: 'Roboto Slab', serif;
+    background-color: #000000;
+    color: transparent;
+    text-shadow: 0px -1px 0px rgba(255, 255, 255, 0.8);
+    -webkit-background-clip: text;
+       -moz-background-clip: text;
+            background-clip: text;
+}
+
+.profile
+{
+    background-image: url('../assets/profil_unfolded.png');
+    width: 134px;
+    height: 186px;
+    position: absolute;
+    left: 18px;
+    top: 71px;
+    -webkit-app-region: no-drag;
+}
+
+.select-acc
+{
+    background-image: url('../assets/selectacc_unfolded.png');
+    width: 136px;
+    height: 186px;
+    position: absolute;
+    left: 332px;
+    top: 67px;
+    text-align: center;
+}
+
+.select-acc p
+{
+    margin-top: 50px;
+    margin-bottom: 5px;
+    color: white;
+}
+
+.select-acc .acc-list
+{
+    overflow: auto;
+    overflow-y:auto;
+    height: 70px;
+    margin-bottom: 10px;
+}
+
+.options
+{
+    background-image: url('../assets/option_unfolded.png');
+    width: 263px;
+    height: 300px;
+    position: absolute;
+    right: 52px;
+    top: 63px;
+}
+
+.drag-region
+{
+    -webkit-app-region: drag;
+}
+
+.left
+{
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width: 51px;
+    height: 100%;
+}
+
+.right
+{
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    width: 51px;
+    height: 100%;
+}
+
+.top
+{
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    width: 100%;
     height: 60px;
 }
 
-.logo
-{
-    height: 150px;
-    position: absolute;
-    left: 315px;
-}
-
-.content-container
+.top2
 {
     position: absolute;
-    top: 160px;
-    left: 80px;
-    width: 640px;
-    height: 400px;
-    -webkit-app-region: no-drag;
+    left: 390px;
+    top: 0px;
+    width: 250px;
+    height: 120px;
 }
 
-.window-actions
+.bottom1
 {
     position: absolute;
-    top: 100px;
-    right: 150px;
-    width: 96px;
-    height: 30px;
-    -webkit-app-region: no-drag;
+    left: 0px;
+    bottom: 0px;
+    width: 40%;
+    height: 40px;
 }
 
-.settings-logo
+.bottom2
 {
-    width: 32px;
-    height: 32px;
+    position: absolute;
+    right: 0px;
+    bottom: 0px;
+    width: 40%;
+    height: 40px;
 }
 
-.settings-logo:hover
+.select-acc table
 {
+    width: 100%;
+    text-align: center;
+    color: white;
+}
+
+.select-acc table tr:hover
+{
+    color: grey;
     cursor: pointer;
 }
 
-.minimize-logo
+.input
 {
-    width: 32px;
-    height: 32px;
+    width:  80px;
+    margin-right: 5px;
 }
 
-.minimize-logo:hover
+.email
 {
+    margin-top: 53px;
+    font-size: 14px;
+    text-align: center;
+    color: white;
+}
+
+.external-links
+{
+    margin-top: 25px;
+    text-align: center;
+    color: white;
+}
+
+.external-links p:hover
+{
+    color: grey;
     cursor: pointer;
 }
 
-.close-logo
+.logout
 {
-    width: 32px;
-    height: 32px;
+    color: white;
+    text-align: center;
 }
 
-.close-logo:hover
+.logout:hover
 {
+    color: grey;
     cursor: pointer;
 }
 
-.auth-actions
+.options-inner
 {
-    position: absolute;
-    top: 100px;
-    left: 50px;
-    width: 64px;
-    height: 30px;
-    -webkit-app-region: no-drag;
+    margin-top: 70px;
+    margin-left: 10px;
+
 }
 
-.user-logo
+.options-inner table
 {
-    width: 32px;
-    height: 32px;
+    color: white;
+    width: 100%;
+    table-layout: fixed;
 }
 
-.expand-logo
+.options-inner tr
 {
-    width: 32px;
-    height: 32px;
+    width: 100%;
 }
 
+.options-inner td:first-child()
+{
+    width: 50%;
+}
 
-#nav
+.options-inner td:nth-child(2)
+{
+    *
+    {
+        width: 100%;
+    }
+    width: 50%;
+}
+
+.hidden
 {
     visibility: hidden;
+}
+
+.admin-input
+{
     position: absolute;
-    top: 100px;
-    left: 82px;
-    width: 100px;
-    height: 100px;
-    padding: 3px;
-    padding-top: 0px;
-    background-color: rgb(206, 158, 117);
-    -webkit-box-shadow: 10px 10px 18px -6px rgba(0,0,0,0.75);
-    -webkit-app-region: no-drag !important;
-    border: 1px solid transparent;
-    border-radius: 4px;
-}
-
-#nav button
-{
-    margin-top: 20px;
-    width: 100%;
-    height: 30px;
-    background-color: rgb(61, 44, 29);
-    border: 1px solid transparent;
-    border-radius: 4px;   
-    font-size: 1.2vw;
-    font-family: 'Roboto Slab', serif;
-    color: rgb(183, 155, 127)
-}
-#nav button:focus 
-{ 
-    outline: none; 
-}
-
-button:hover
-{
-    cursor: pointer;
-    background-color: rgba(88, 66, 43, 0.9) !important;
-}
-
-.expand-logo:hover
-{
-    cursor: pointer;
+    left: 100px;
+    top: 120px;
+    width: 250px;
 }

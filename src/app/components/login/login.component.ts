@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { AuthenticationService } from '../../services/auth.service';
 import { Router } from '@angular/router';
 import { ElectronService } from '../../providers/electron.service';
+import { SelectAccountService } from '../../services/select-account.service';
 
 @Component({
   selector: 'login',
@@ -16,7 +17,7 @@ export class LoginComponent implements OnInit {
     hasErrors : boolean = false;
     errorText : string = "";
 
-  constructor(private authenticationService : AuthenticationService, private router : Router) { }
+  constructor(private authenticationService : AuthenticationService,private selectAccountService : SelectAccountService, private router : Router) { }
 
   ngOnInit() {
   }
@@ -27,6 +28,7 @@ export class LoginComponent implements OnInit {
             result => {
                 this.success = true;
                 this.hasErrors = false;
+                this.selectAccountService.updateGameAccounts();
                 setTimeout(() => {
                     this.router.navigate(['']);
                 },1000)

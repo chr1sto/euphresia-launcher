@@ -26,6 +26,7 @@
                     <input type="password" [(ngModel)]="confirmedPassword">
                 </td>
             </tr>
+            <!--
             <tr>
                 <td class="label">
                     Secret Question
@@ -42,6 +43,7 @@
                     <input type="text" [(ngModel)]="secretAnswer">
                 </td>
             </tr>
+            -->
         </table>
         <div *ngIf="hasErrors" class="errors">
             <p *ngFor="let item of errorMessages" class="error">{{item}}</p>

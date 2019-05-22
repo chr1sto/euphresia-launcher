@@ -1,5 +1,5 @@
 {
-  "productName": "angular-electron",
+  "productName": "Euphresia Flyff Launcher",
   "directories": {
     "output": "release/"
   },
@@ -20,7 +20,7 @@
         "!tslint.json"
     ],
   "win": {
-    "icon": "dist",
+    "icon": "dist/favicon.ico",
     "target": [
       "portable"
     ]

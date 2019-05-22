@@ -1,22 +1,166 @@
-<div class="logo-container">
-    <img src="../assets/logo.png" class="logo">
-</div>
-<img src="../assets/reg_cont.png" class="bg">
-<div class="content-container">
+<div class="this">
+    <div class="top-panel">
+        <div class="right-top">
+            <div class="icon-announce"></div>
+            <div class="icon-option" (mouseenter)="this.toggleOptions()"></div>
+            <div class="icon-minimize" (click)="minimize()"></div>
+            <div class="icon-close" (click)="close()"></div>
+        </div>
+        <div class="left-top" [ngClass]="{'hidden': !this.authenticationService.isLoggedIn}">
+            <div class="icon-profile"></div>
+            <div class="icon-expand-profile" (mouseenter)="this.toggleProfile()"></div>
+            <div class="user">
+                <div *ngIf="this.selectAccService.selectedAccount">{{this.selectAccService.selectedAccount}}</div>
+                <div *ngIf="!this.selectAccService.selectedAccount">Select an Account -></div>
+            </div>
+            <div class="icon-select-acc" (mouseenter)="this.toggleSelectAcc()"></div>
+        </div>
+    </div>
     <router-outlet></router-outlet>
 </div>
-<div class="window-actions">
-    <img class="settings-logo" src="../assets/baseline-settings-20px.svg" (click)="openSettings()">
-    <img class="minimize-logo" src="../assets/baseline-minimize-24px.svg" (click)="minimize()">
-    <img class="close-logo" src="../assets/baseline-close-24px.svg" (click)="close()">
+
+<div class="drag-region left"></div>
+<div class="drag-region right"></div>
+<div class="drag-region top"></div>
+<div class="drag-region top2"></div>
+<div class="drag-region bottom1"></div>
+<div class="drag-region bottom2"></div>
+
+<input [(ngModel)]="this.selectAccService.selectedAccountId" class="admin-input" *ngIf="this.authenticationService.isAdmin()">
+
+<div class="profile" id="profile" *ngIf="profileUnfolded">
+    <p class="email" id="email">{{ this.authenticationService.userInfo.email }}</p>
+    <div class="external-links">
+        <p (click)="openWeb()">Website</p>
+        <p (click)="openDiscord()">Discord</p>
+    </div>
+    <p class="logout" (click)="logout()">Logout</p>
 </div>
 
-<div class="auth-actions" *ngIf="this.authenticationService.isAuthenticated()">
-    <img class="user-logo" src="../assets/baseline-person-24px.svg">
-    <img class="expand-logo" src="../assets/baseline-expand_more-24px.svg" (click)="this.toggleNav()">
+<div id="select-acc" class="select-acc" *ngIf="selectAccUnfolded">
+    <p>Choose Account:</p>
+    <div class="acc-list">
+        <table>
+            <tr id="body" *ngFor="let item of selectAccService.gameAccounts">
+                <td (click)="selectAccount(item)">{{item.alias}}</td>
+            </tr>
+        </table>
+    </div>
+    <input [(ngModel)]="accountAlias" type="text" placeholder="Add" class="input">
+    <button (click)="selectAccService.createAccount(this.accountAlias); this.accountAlias = null;">+</button>
+</div>
+<div class="options" id="options" *ngIf="optionsUnfolded">
+    <div class="options-inner">
+        <table>
+            <tr>
+                <td class="first">
+                    Resolution
+                </td>
+                <td>
+                    <select [(ngModel)]="configService.resolution" id="resolution" (change)="configChanged()">
+                        <option value="800x600">800x600</option>
+                        <option value="1024x768">1024x768</option>
+                        <option value="1280x1024">1280x1024</option>
+                        <option value="1280x720">1280x720 (wide)</option>
+                        <option value="1280x768">1280x768 (wide)</option>
+                        <option value="1280x800">1280x800 (wide)</option>
+                        <option value="1600x900">1600x900</option>
+                        <option value="1600x1200">1600x1200</option>
+                        <option value="1360x768">1360x768 (wide)</option>
+                        <option value="1400x1050">1400x1050</option>
+                        <option value="1440x900">1440x900 (wide)</option>
+                        <option value="1650x1050">1650x1050 (wide)</option>
+                        <option value="1920x1200">1920x1200 (wide)</option>
+                        <option value="1920x1080">1920x1080</option>
+                        <option value="2560x1080">2560x1080 (ultra wide)</option>
+                        <option value="2560x1440">2560x1440 (wide)</option>
+                        <option value="3440x1440">3440x1440 (ultra wide)</option>
+                        <option value="3840x2160">3840x2160 (4k)</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td class="first">
+                    Fullscreen
+                </td>
+                <td>
+                    <input [(ngModel)]="configService.fullscreen" type="checkbox" id="fullscreen" (change)="configChanged()">
+                </td>
+            </tr>
+            <tr>
+                <td class="first">
+                    Interface
+                </td>
+                <td>
+                    <select [(ngModel)]="configService.interface" id="interface-version" (change)="configChanged()">
+                        <option value="1">Classic</option>
+                        <option value="0">V19</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td class="first">
+                    Taskbar
+                </td>
+                <td>
+                    <select [(ngModel)]="configService.ntask" id="taskbar" (change)="configChanged()">
+                        <option value="1">Classic</option>
+                        <option value="0">V19</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td class="first">
+                    Increased FOV
+                </td>
+                <td>
+                    <input [(ngModel)]="configService.fovInCrase" type="checkbox" id="fullscreen" (change)="configChanged()">
+                </td>
+            </tr>
+            <tr>
+                <td class="first">
+                    Anisotrophy
+                </td>
+                <td>
+                    <select [(ngModel)]="configService.anisotrophy" id="anisotrophy" (change)="configChanged()">
+                        <option value="0">0</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                        <option value="11">11</option>
+                        <option value="12">12</option>
+                        <option value="13">13</option>
+                        <option value="14">14</option>
+                        <option value="15">15</option>
+                        <option value="16">16</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td class="first">
+                    Multisample
+                </td>
+                <td>
+                    <input [(ngModel)]="configService.multisample" type="checkbox" id="fullscreen" (change)="configChanged()">
+                </td>
+            </tr>
+            <tr>
+                <td class="first">
+                    Auto Update
+                </td>
+                <td class="second">
+                    <input [(ngModel)]="configService.autoUpdate" type="checkbox" id="auto-update" (change)="configChanged()">
+                </td>
+            </tr>
+        </table>
+    </div>
 </div>
 
-<nav role="navigation" id="nav">
-    <img class="expand-logo" src="../assets/baseline-expand_less-24px.svg" (click)="this.toggleNav()">
-    <button (click)="logout()">Logout</button>
-</nav>
+<modal></modal>
