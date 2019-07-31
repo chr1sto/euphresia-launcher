@@ -10,6 +10,8 @@ import { ElectronService } from '../providers/electron.service';
 export class AuthenticationService
 {
     userInfo : UserInfo;
+    errorMessages : string[];
+    hasErrors : boolean;
 
     constructor(private _http: HttpClient, private _accountService: AccountService,private _electron: ElectronService) {
         if(this.isAuthenticated())
@@ -31,16 +33,22 @@ export class AuthenticationService
         loginDto.rememberMe = rememberMe;
         return this._accountService.login(loginDto).pipe(
             map(
-                token => 
+                result => 
                 {
-                    if(token)
+                    if(result.success)
                     {
-                        console.log(token)
-                        localStorage.setItem('token',token.data);
-                        console.log(token.data);
+                        localStorage.setItem('token',result.data);
                         this.userInfo = this.getUserInfo();
                         this.isLoggedIn = true;
-                        this._electron.ipcRenderer.send('token',token.data);
+                        this.hasErrors = false;
+                        this.errorMessages = null;
+                        this._electron.ipcRenderer.send('token',result.data);
+                    }
+                    else
+                    {
+                        this.hasErrors = true;
+                        this.errorMessages = result.errors;
+                        this.isLoggedIn = false;
                     }
                 }
             )

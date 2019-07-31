@@ -25,20 +25,23 @@ export class LoginComponent implements OnInit {
   login()
   {
         this.authenticationService.login(this.email,this.password,true).subscribe(
-            result => {
-                this.success = true;
-                this.hasErrors = false;
-                this.selectAccountService.updateGameAccounts();
-                setTimeout(() => {
+            () => {
+                if(this.authenticationService.isLoggedIn)
+                {
+                    this.success = true;
+                    this.hasErrors = false;
+                    this.errorText = "";
+                    this.selectAccountService.updateGameAccounts();
                     this.router.navigate(['']);
-                },1000)
-            },
-            error => {
-                this.hasErrors = true;
-                this.success = false;
-                this.errorText = error
-                console.log(error);
+                }
+                else
+                {
+                    this.hasErrors = this.authenticationService.hasErrors;
+                    this.errorText = this.authenticationService.errorMessages.join('\n');
+                    this.success = false;
+                }
             }
         )
+       
   }
 }

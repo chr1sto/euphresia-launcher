@@ -39,6 +39,8 @@ export class RegisterComponent {
       this.accountService.register(model).subscribe(
         result => 
           {
+            if(result.success)
+            {
               this.hasErrors = false;
               this.errorMessages = null;
               this.success = true;
@@ -47,6 +49,13 @@ export class RegisterComponent {
                 this.router.navigate(['login'])
               }
               ,1000)
+            }
+            else
+            {
+              this.hasErrors = true;
+              this.errorMessages = result.errors;
+              this.success = false;
+            }
           },
           error => 
           {

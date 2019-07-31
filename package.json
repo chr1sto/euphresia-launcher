@@ -6,7 +6,7 @@
     "name": "Euphresia Flyff"
   },
   "productName": "Euphresia Flyff Launcher",
-  "files":[
+  "files": [
     "./dist/**/*"
   ],
   "keywords": [

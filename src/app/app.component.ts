@@ -20,6 +20,11 @@ export class AppComponent implements OnInit {
   errorMessages: string[];
   ngOnInit(): void {
       this.selectAccService.updateGameAccounts();
+
+      if(!this.configService.iniLoaded)
+      {
+        this.configService.getConfig();
+      }
     }
 
   //profile
