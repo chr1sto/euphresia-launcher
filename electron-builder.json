@@ -20,7 +20,6 @@
         "!tslint.json"
     ],
   "win": {
-    "requestedExecutionLevel": "highestAvailable",
     "icon": "dist/favicon.ico",
     "target": [
       "portable"

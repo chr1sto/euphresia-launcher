@@ -95,15 +95,17 @@ export class HomeComponent implements OnInit {
     this.patch();
     this.ref.detectChanges();
 
+    
     setInterval(() => {
       this.patch();
     },300000);
+    
   }
 
   updateBarWidth()
   {
-    document.getElementById('part-left').style.clip = 'rect(0,'+this.partWidthLeft+'px,51px,0)';
-    document.getElementById('part-right').style.clip = 'rect(0,'+this.partWidthRight+'px,51px,0)';
+    document.getElementById('part-left').style.clip = 'rect(0,'+Math.floor(this.partWidthLeft)+'px,51px,0)';
+    document.getElementById('part-right').style.clip = 'rect(0,'+Math.floor(this.partWidthRight)+'px,51px,0)';
     this.ref.detectChanges();
   }
 
@@ -111,20 +113,25 @@ export class HomeComponent implements OnInit {
   {
     var handler = setTimeout(() =>{
       this.checkForUpdate();
+      /*
       if(this.configService.autoUpdate && this.runningClients.length == 0)
       {
         this.startPatchProcess();
       }
+      */
     },2000)
     this.ref.detectChanges();
   }
 
   startPatchProcess()
   {
+    if(!this.patchInProcess)
+    {
       this.patchInProcess = true;
       this.electronService.ipcRenderer.send('start-download-process','test');
       this.patchAvailable = false;
       this.ref.detectChanges();
+    }
   }
 
   checkForUpdate()

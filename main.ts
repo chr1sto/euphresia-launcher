@@ -15,8 +15,8 @@ serve = args.some(val => val === '--serve');
 let configEntries : any = null;
 
 const serverRoot = 'https://patch.euphresia-flyff.com/';
-const localClientPath = process.env.PORTABLE_EXECUTABLE_DIR + '\\';//'E:\\Flyff\\Euphresia FlyFF - Beta\\'//
-const tempExecPath = path.join(localClientPath + 'binary\\Euphresia.exe');
+const localClientPath = '../'//'E:\\Flyff\\Euphresia FlyFF - Beta\\'//process.env.PORTABLE_EXECUTABLE_DIR + '\\';
+const tempExecPath = path.join(path.resolve('../'),'binary\\Euphresia.exe');
 const appdata = path.join(process.env.LOCALAPPDATA,'Euphresia\\Flyff\\');
 const iniPath = path.join(appdata,'Euphresia.ini');
 const patchConfigPath = path.join(appdata,'EuphresiaLauncher.ini');
