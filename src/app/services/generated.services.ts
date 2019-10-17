@@ -24,7 +24,7 @@ export class AccountService {
 
     constructor(@Inject(HttpClient) http: HttpClient, @Optional() @Inject(API_BASE_URL) baseUrl?: string) {
         this.http = http;
-        this.baseUrl = baseUrl ? baseUrl : "";
+        this.baseUrl = baseUrl ? baseUrl : "/api";
     }
 
     /**
@@ -32,7 +32,7 @@ export class AccountService {
      * @return Success
      */
     login(loginViewModel?: LoginViewModel | null | undefined): Observable<ApiResultOfString> {
-        let url_ = this.baseUrl + "/api/v1/account/login";
+        let url_ = this.baseUrl + "/v1/account/login";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(loginViewModel);
@@ -95,7 +95,7 @@ export class AccountService {
      * @return Success
      */
     register(registerViewModel?: RegisterViewModel | null | undefined): Observable<ApiResultOfRegisterViewModel> {
-        let url_ = this.baseUrl + "/api/v1/account/register";
+        let url_ = this.baseUrl + "/v1/account/register";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(registerViewModel);
@@ -160,7 +160,7 @@ export class AccountService {
      * @return Success
      */
     account(index?: number | null | undefined, count?: number | null | undefined, searchText?: string | null | undefined): Observable<ApiResultOfPagedResultDataOfIEnumerableOfApplicationUser> {
-        let url_ = this.baseUrl + "/api/v1/account?";
+        let url_ = this.baseUrl + "/v1/account?";
         if (index !== undefined)
             url_ += "index=" + encodeURIComponent("" + index) + "&"; 
         if (count !== undefined)
@@ -224,7 +224,7 @@ export class AccountService {
      * @return Success
      */
     accountGetByid(id: string): Observable<ApiResultOfApplicationUser> {
-        let url_ = this.baseUrl + "/api/v1/account/{id}";
+        let url_ = this.baseUrl + "/v1/account/{id}";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id)); 
@@ -292,14 +292,14 @@ export class AccountManagmentService {
 
     constructor(@Inject(HttpClient) http: HttpClient, @Optional() @Inject(API_BASE_URL) baseUrl?: string) {
         this.http = http;
-        this.baseUrl = baseUrl ? baseUrl : "";
+        this.baseUrl = baseUrl ? baseUrl : "/api";
     }
 
     /**
      * @return Success
      */
     resendVerificationMail(): Observable<ApiResultOfString> {
-        let url_ = this.baseUrl + "/api/v1/account-managment/resend-verification-mail";
+        let url_ = this.baseUrl + "/v1/account-managment/resend-verification-mail";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_ : any = {
@@ -355,12 +355,15 @@ export class AccountManagmentService {
 
     /**
      * @param code (optional) 
+     * @param id (optional) 
      * @return Success
      */
-    verifyMail(code?: string | null | undefined): Observable<ApiResultOfString> {
-        let url_ = this.baseUrl + "/api/v1/account-managment/verify-mail?";
+    verifyMail(code?: string | null | undefined, id?: string | null | undefined): Observable<ApiResultOfString> {
+        let url_ = this.baseUrl + "/v1/account-managment/verify-mail?";
         if (code !== undefined)
             url_ += "code=" + encodeURIComponent("" + code) + "&"; 
+        if (id !== undefined)
+            url_ += "id=" + encodeURIComponent("" + id) + "&"; 
         url_ = url_.replace(/[?&]$/, "");
 
         let options_ : any = {
@@ -419,7 +422,7 @@ export class AccountManagmentService {
      * @return Success
      */
     changePassword(model?: ChangePasswordViewModel | null | undefined): Observable<ApiResultOfChangePasswordViewModel> {
-        let url_ = this.baseUrl + "/api/v1/account-managment/change-password";
+        let url_ = this.baseUrl + "/v1/account-managment/change-password";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(model);
@@ -476,6 +479,132 @@ export class AccountManagmentService {
         }
         return _observableOf<ApiResultOfChangePasswordViewModel>(<any>null);
     }
+
+    /**
+     * @param model (optional) 
+     * @return Success
+     */
+    forgotPassword(model?: ForgotPasswordViewModel | null | undefined): Observable<ApiResultOfForgotPasswordViewModel> {
+        let url_ = this.baseUrl + "/v1/account-managment/forgot-password";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(model);
+
+        let options_ : any = {
+            body: content_,
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Content-Type": "application/json", 
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("post", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processForgotPassword(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processForgotPassword(<any>response_);
+                } catch (e) {
+                    return <Observable<ApiResultOfForgotPasswordViewModel>><any>_observableThrow(e);
+                }
+            } else
+                return <Observable<ApiResultOfForgotPasswordViewModel>><any>_observableThrow(response_);
+        }));
+    }
+
+    protected processForgotPassword(response: HttpResponseBase): Observable<ApiResultOfForgotPasswordViewModel> {
+        const status = response.status;
+        const responseBlob = 
+            response instanceof HttpResponse ? response.body : 
+            (<any>response).error instanceof Blob ? (<any>response).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }};
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = resultData200 ? ApiResultOfForgotPasswordViewModel.fromJS(resultData200) : new ApiResultOfForgotPasswordViewModel();
+            return _observableOf(result200);
+            }));
+        } else if (status === 400) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = resultData400 ? ApiResultOfForgotPasswordViewModel.fromJS(resultData400) : new ApiResultOfForgotPasswordViewModel();
+            return throwException("A server error occurred.", status, _responseText, _headers, result400);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf<ApiResultOfForgotPasswordViewModel>(<any>null);
+    }
+
+    /**
+     * @param model (optional) 
+     * @return Success
+     */
+    resetPassword(model?: ResetPasswordViewModel | null | undefined): Observable<ApiResultOfResetPasswordViewModel> {
+        let url_ = this.baseUrl + "/v1/account-managment/reset-password";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(model);
+
+        let options_ : any = {
+            body: content_,
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Content-Type": "application/json", 
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("post", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processResetPassword(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processResetPassword(<any>response_);
+                } catch (e) {
+                    return <Observable<ApiResultOfResetPasswordViewModel>><any>_observableThrow(e);
+                }
+            } else
+                return <Observable<ApiResultOfResetPasswordViewModel>><any>_observableThrow(response_);
+        }));
+    }
+
+    protected processResetPassword(response: HttpResponseBase): Observable<ApiResultOfResetPasswordViewModel> {
+        const status = response.status;
+        const responseBlob = 
+            response instanceof HttpResponse ? response.body : 
+            (<any>response).error instanceof Blob ? (<any>response).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }};
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = resultData200 ? ApiResultOfResetPasswordViewModel.fromJS(resultData200) : new ApiResultOfResetPasswordViewModel();
+            return _observableOf(result200);
+            }));
+        } else if (status === 400) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = resultData400 ? ApiResultOfResetPasswordViewModel.fromJS(resultData400) : new ApiResultOfResetPasswordViewModel();
+            return throwException("A server error occurred.", status, _responseText, _headers, result400);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf<ApiResultOfResetPasswordViewModel>(<any>null);
+    }
 }
 
 @Injectable({
@@ -488,14 +617,14 @@ export class FileUploadService {
 
     constructor(@Inject(HttpClient) http: HttpClient, @Optional() @Inject(API_BASE_URL) baseUrl?: string) {
         this.http = http;
-        this.baseUrl = baseUrl ? baseUrl : "";
+        this.baseUrl = baseUrl ? baseUrl : "/api";
     }
 
     /**
      * @return Success
      */
     fileUploadGet(): Observable<ApiResultOfIEnumerableOfString> {
-        let url_ = this.baseUrl + "/api/v1/file-upload";
+        let url_ = this.baseUrl + "/v1/file-upload";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_ : any = {
@@ -559,7 +688,7 @@ export class FileUploadService {
      * @return Success
      */
     fileUploadPost(contentType?: string | null | undefined, contentDisposition?: string | null | undefined, headers?: any | null | undefined, length?: number | null | undefined, name?: string | null | undefined, fileName?: string | null | undefined): Observable<ApiResultOfIFormFile> {
-        let url_ = this.baseUrl + "/api/v1/file-upload";
+        let url_ = this.baseUrl + "/v1/file-upload";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = new FormData();
@@ -632,7 +761,7 @@ export class FileUploadService {
      * @return Success
      */
     fileUploadDeleteWithid(id: string): Observable<ApiResultOfString> {
-        let url_ = this.baseUrl + "/api/v1/file-upload/{id}";
+        let url_ = this.baseUrl + "/v1/file-upload/{id}";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id)); 
@@ -700,14 +829,14 @@ export class GameAccountService {
 
     constructor(@Inject(HttpClient) http: HttpClient, @Optional() @Inject(API_BASE_URL) baseUrl?: string) {
         this.http = http;
-        this.baseUrl = baseUrl ? baseUrl : "";
+        this.baseUrl = baseUrl ? baseUrl : "/api";
     }
 
     /**
      * @return Success
      */
     gameAccountGet(): Observable<ApiResultOfIPagedListOfGameAccountViewModel> {
-        let url_ = this.baseUrl + "/api/v1/game-account";
+        let url_ = this.baseUrl + "/v1/game-account";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_ : any = {
@@ -759,7 +888,7 @@ export class GameAccountService {
      * @return Success
      */
     gameAccountPost(gameAccountViewModel?: GameAccountViewModel | null | undefined): Observable<ApiResultOfGameAccountViewModel> {
-        let url_ = this.baseUrl + "/api/v1/game-account";
+        let url_ = this.baseUrl + "/v1/game-account";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(gameAccountViewModel);
@@ -822,7 +951,7 @@ export class GameAccountService {
      * @return Success
      */
     gameAccountPatch(gameAccountViewModel?: GameAccountViewModel | null | undefined): Observable<ApiResultOfGameAccountViewModel> {
-        let url_ = this.baseUrl + "/api/v1/game-account";
+        let url_ = this.baseUrl + "/v1/game-account";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(gameAccountViewModel);
@@ -884,7 +1013,7 @@ export class GameAccountService {
      * @return Success
      */
     gameAccountGetByid(id: string): Observable<ApiResultOfIPagedListOfGameAccountViewModel> {
-        let url_ = this.baseUrl + "/api/v1/game-account/{id}";
+        let url_ = this.baseUrl + "/v1/game-account/{id}";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id)); 
@@ -938,6 +1067,200 @@ export class GameAccountService {
 @Injectable({
     providedIn: 'root'
 })
+export class GameCharacterService {
+    private http: HttpClient;
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(@Inject(HttpClient) http: HttpClient, @Optional() @Inject(API_BASE_URL) baseUrl?: string) {
+        this.http = http;
+        this.baseUrl = baseUrl ? baseUrl : "/api";
+    }
+
+    /**
+     * @param id (optional) 
+     * @param index (optional) 
+     * @param count (optional) 
+     * @param searchText (optional) 
+     * @return Success
+     */
+    gameCharacterGet(id?: string | null | undefined, index?: number | null | undefined, count?: number | null | undefined, searchText?: string | null | undefined): Observable<ApiResultOfPagedResultDataOfIEnumerableOfCharacterAdminViewModel> {
+        let url_ = this.baseUrl + "/v1/game-character?";
+        if (id !== undefined)
+            url_ += "id=" + encodeURIComponent("" + id) + "&"; 
+        if (index !== undefined)
+            url_ += "index=" + encodeURIComponent("" + index) + "&"; 
+        if (count !== undefined)
+            url_ += "count=" + encodeURIComponent("" + count) + "&"; 
+        if (searchText !== undefined)
+            url_ += "searchText=" + encodeURIComponent("" + searchText) + "&"; 
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processGameCharacterGet(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processGameCharacterGet(<any>response_);
+                } catch (e) {
+                    return <Observable<ApiResultOfPagedResultDataOfIEnumerableOfCharacterAdminViewModel>><any>_observableThrow(e);
+                }
+            } else
+                return <Observable<ApiResultOfPagedResultDataOfIEnumerableOfCharacterAdminViewModel>><any>_observableThrow(response_);
+        }));
+    }
+
+    protected processGameCharacterGet(response: HttpResponseBase): Observable<ApiResultOfPagedResultDataOfIEnumerableOfCharacterAdminViewModel> {
+        const status = response.status;
+        const responseBlob = 
+            response instanceof HttpResponse ? response.body : 
+            (<any>response).error instanceof Blob ? (<any>response).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }};
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = resultData200 ? ApiResultOfPagedResultDataOfIEnumerableOfCharacterAdminViewModel.fromJS(resultData200) : new ApiResultOfPagedResultDataOfIEnumerableOfCharacterAdminViewModel();
+            return _observableOf(result200);
+            }));
+        } else if (status === 400) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = resultData400 ? ApiResultOfPagedResultDataOfIEnumerableOfCharacterAdminViewModel.fromJS(resultData400) : new ApiResultOfPagedResultDataOfIEnumerableOfCharacterAdminViewModel();
+            return throwException("A server error occurred.", status, _responseText, _headers, result400);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf<ApiResultOfPagedResultDataOfIEnumerableOfCharacterAdminViewModel>(<any>null);
+    }
+
+    /**
+     * @param models (optional) 
+     * @return Success
+     */
+    gameCharacterPost(models?: CharacterAdminViewModel[] | null | undefined): Observable<void> {
+        let url_ = this.baseUrl + "/v1/game-character";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(models);
+
+        let options_ : any = {
+            body: content_,
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Content-Type": "application/json", 
+            })
+        };
+
+        return this.http.request("post", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processGameCharacterPost(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processGameCharacterPost(<any>response_);
+                } catch (e) {
+                    return <Observable<void>><any>_observableThrow(e);
+                }
+            } else
+                return <Observable<void>><any>_observableThrow(response_);
+        }));
+    }
+
+    protected processGameCharacterPost(response: HttpResponseBase): Observable<void> {
+        const status = response.status;
+        const responseBlob = 
+            response instanceof HttpResponse ? response.body : 
+            (<any>response).error instanceof Blob ? (<any>response).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }};
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return _observableOf<void>(<any>null);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf<void>(<any>null);
+    }
+
+    /**
+     * @return Success
+     */
+    myCharacters(): Observable<ApiResultOfIEnumerableOfCharacterViewModel> {
+        let url_ = this.baseUrl + "/v1/game-character/my-characters";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processMyCharacters(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processMyCharacters(<any>response_);
+                } catch (e) {
+                    return <Observable<ApiResultOfIEnumerableOfCharacterViewModel>><any>_observableThrow(e);
+                }
+            } else
+                return <Observable<ApiResultOfIEnumerableOfCharacterViewModel>><any>_observableThrow(response_);
+        }));
+    }
+
+    protected processMyCharacters(response: HttpResponseBase): Observable<ApiResultOfIEnumerableOfCharacterViewModel> {
+        const status = response.status;
+        const responseBlob = 
+            response instanceof HttpResponse ? response.body : 
+            (<any>response).error instanceof Blob ? (<any>response).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }};
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = resultData200 ? ApiResultOfIEnumerableOfCharacterViewModel.fromJS(resultData200) : new ApiResultOfIEnumerableOfCharacterViewModel();
+            return _observableOf(result200);
+            }));
+        } else if (status === 400) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = resultData400 ? ApiResultOfIEnumerableOfCharacterViewModel.fromJS(resultData400) : new ApiResultOfIEnumerableOfCharacterViewModel();
+            return throwException("A server error occurred.", status, _responseText, _headers, result400);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf<ApiResultOfIEnumerableOfCharacterViewModel>(<any>null);
+    }
+}
+
+@Injectable({
+    providedIn: 'root'
+})
 export class GameEventService {
     private http: HttpClient;
     private baseUrl: string;
@@ -945,14 +1268,14 @@ export class GameEventService {
 
     constructor(@Inject(HttpClient) http: HttpClient, @Optional() @Inject(API_BASE_URL) baseUrl?: string) {
         this.http = http;
-        this.baseUrl = baseUrl ? baseUrl : "";
+        this.baseUrl = baseUrl ? baseUrl : "/api";
     }
 
     /**
      * @return Success
      */
-    gameEventsGet(): Observable<ApiResultOfObject> {
-        let url_ = this.baseUrl + "/api/v1/game-events";
+    gameEventsGet(): Observable<ApiResultOfIListOfStoredEvent> {
+        let url_ = this.baseUrl + "/v1/game-events";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_ : any = {
@@ -970,14 +1293,14 @@ export class GameEventService {
                 try {
                     return this.processGameEventsGet(<any>response_);
                 } catch (e) {
-                    return <Observable<ApiResultOfObject>><any>_observableThrow(e);
+                    return <Observable<ApiResultOfIListOfStoredEvent>><any>_observableThrow(e);
                 }
             } else
-                return <Observable<ApiResultOfObject>><any>_observableThrow(response_);
+                return <Observable<ApiResultOfIListOfStoredEvent>><any>_observableThrow(response_);
         }));
     }
 
-    protected processGameEventsGet(response: HttpResponseBase): Observable<ApiResultOfObject> {
+    protected processGameEventsGet(response: HttpResponseBase): Observable<ApiResultOfIListOfStoredEvent> {
         const status = response.status;
         const responseBlob = 
             response instanceof HttpResponse ? response.body : 
@@ -988,7 +1311,7 @@ export class GameEventService {
             return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
             let result200: any = null;
             let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = resultData200 ? ApiResultOfObject.fromJS(resultData200) : new ApiResultOfObject();
+            result200 = resultData200 ? ApiResultOfIListOfStoredEvent.fromJS(resultData200) : new ApiResultOfIListOfStoredEvent();
             return _observableOf(result200);
             }));
         } else if (status !== 200 && status !== 204) {
@@ -996,7 +1319,7 @@ export class GameEventService {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             }));
         }
-        return _observableOf<ApiResultOfObject>(<any>null);
+        return _observableOf<ApiResultOfIListOfStoredEvent>(<any>null);
     }
 
     /**
@@ -1004,7 +1327,7 @@ export class GameEventService {
      * @return Success
      */
     gameEventsPatch(id?: string | null | undefined): Observable<ApiResultOfGuid> {
-        let url_ = this.baseUrl + "/api/v1/game-events";
+        let url_ = this.baseUrl + "/v1/game-events";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(id);
@@ -1059,6 +1382,271 @@ export class GameEventService {
 @Injectable({
     providedIn: 'root'
 })
+export class GenericService {
+    private http: HttpClient;
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(@Inject(HttpClient) http: HttpClient, @Optional() @Inject(API_BASE_URL) baseUrl?: string) {
+        this.http = http;
+        this.baseUrl = baseUrl ? baseUrl : "/api";
+    }
+
+    /**
+     * @param type (optional) 
+     * @param amount (optional) 
+     * @return Success
+     */
+    generalGet(type?: string | null | undefined, amount?: number | null | undefined): Observable<ApiResultOfIEnumerableOfGenericObjectViewModel> {
+        let url_ = this.baseUrl + "/v1/general?";
+        if (type !== undefined)
+            url_ += "type=" + encodeURIComponent("" + type) + "&"; 
+        if (amount !== undefined)
+            url_ += "amount=" + encodeURIComponent("" + amount) + "&"; 
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processGeneralGet(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processGeneralGet(<any>response_);
+                } catch (e) {
+                    return <Observable<ApiResultOfIEnumerableOfGenericObjectViewModel>><any>_observableThrow(e);
+                }
+            } else
+                return <Observable<ApiResultOfIEnumerableOfGenericObjectViewModel>><any>_observableThrow(response_);
+        }));
+    }
+
+    protected processGeneralGet(response: HttpResponseBase): Observable<ApiResultOfIEnumerableOfGenericObjectViewModel> {
+        const status = response.status;
+        const responseBlob = 
+            response instanceof HttpResponse ? response.body : 
+            (<any>response).error instanceof Blob ? (<any>response).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }};
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = resultData200 ? ApiResultOfIEnumerableOfGenericObjectViewModel.fromJS(resultData200) : new ApiResultOfIEnumerableOfGenericObjectViewModel();
+            return _observableOf(result200);
+            }));
+        } else if (status === 400) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = resultData400 ? ApiResultOfIEnumerableOfGenericObjectViewModel.fromJS(resultData400) : new ApiResultOfIEnumerableOfGenericObjectViewModel();
+            return throwException("A server error occurred.", status, _responseText, _headers, result400);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf<ApiResultOfIEnumerableOfGenericObjectViewModel>(<any>null);
+    }
+
+    /**
+     * @param model (optional) 
+     * @return Success
+     */
+    generalPost(model?: GenericObjectViewModel | null | undefined): Observable<ApiResultOfGenericObjectViewModel> {
+        let url_ = this.baseUrl + "/v1/general";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(model);
+
+        let options_ : any = {
+            body: content_,
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Content-Type": "application/json", 
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("post", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processGeneralPost(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processGeneralPost(<any>response_);
+                } catch (e) {
+                    return <Observable<ApiResultOfGenericObjectViewModel>><any>_observableThrow(e);
+                }
+            } else
+                return <Observable<ApiResultOfGenericObjectViewModel>><any>_observableThrow(response_);
+        }));
+    }
+
+    protected processGeneralPost(response: HttpResponseBase): Observable<ApiResultOfGenericObjectViewModel> {
+        const status = response.status;
+        const responseBlob = 
+            response instanceof HttpResponse ? response.body : 
+            (<any>response).error instanceof Blob ? (<any>response).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }};
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = resultData200 ? ApiResultOfGenericObjectViewModel.fromJS(resultData200) : new ApiResultOfGenericObjectViewModel();
+            return _observableOf(result200);
+            }));
+        } else if (status === 400) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = resultData400 ? ApiResultOfGenericObjectViewModel.fromJS(resultData400) : new ApiResultOfGenericObjectViewModel();
+            return throwException("A server error occurred.", status, _responseText, _headers, result400);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf<ApiResultOfGenericObjectViewModel>(<any>null);
+    }
+
+    /**
+     * @param model (optional) 
+     * @return Success
+     */
+    generalPatch(model?: GenericObjectViewModel | null | undefined): Observable<ApiResultOfGenericObjectViewModel> {
+        let url_ = this.baseUrl + "/v1/general";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(model);
+
+        let options_ : any = {
+            body: content_,
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Content-Type": "application/json", 
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("patch", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processGeneralPatch(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processGeneralPatch(<any>response_);
+                } catch (e) {
+                    return <Observable<ApiResultOfGenericObjectViewModel>><any>_observableThrow(e);
+                }
+            } else
+                return <Observable<ApiResultOfGenericObjectViewModel>><any>_observableThrow(response_);
+        }));
+    }
+
+    protected processGeneralPatch(response: HttpResponseBase): Observable<ApiResultOfGenericObjectViewModel> {
+        const status = response.status;
+        const responseBlob = 
+            response instanceof HttpResponse ? response.body : 
+            (<any>response).error instanceof Blob ? (<any>response).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }};
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = resultData200 ? ApiResultOfGenericObjectViewModel.fromJS(resultData200) : new ApiResultOfGenericObjectViewModel();
+            return _observableOf(result200);
+            }));
+        } else if (status === 400) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = resultData400 ? ApiResultOfGenericObjectViewModel.fromJS(resultData400) : new ApiResultOfGenericObjectViewModel();
+            return throwException("A server error occurred.", status, _responseText, _headers, result400);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf<ApiResultOfGenericObjectViewModel>(<any>null);
+    }
+
+    /**
+     * @return Success
+     */
+    generalDeleteWithid(id: string): Observable<ApiResultOfString> {
+        let url_ = this.baseUrl + "/v1/general/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id)); 
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("delete", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processGeneralDeleteWithid(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processGeneralDeleteWithid(<any>response_);
+                } catch (e) {
+                    return <Observable<ApiResultOfString>><any>_observableThrow(e);
+                }
+            } else
+                return <Observable<ApiResultOfString>><any>_observableThrow(response_);
+        }));
+    }
+
+    protected processGeneralDeleteWithid(response: HttpResponseBase): Observable<ApiResultOfString> {
+        const status = response.status;
+        const responseBlob = 
+            response instanceof HttpResponse ? response.body : 
+            (<any>response).error instanceof Blob ? (<any>response).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }};
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = resultData200 ? ApiResultOfString.fromJS(resultData200) : new ApiResultOfString();
+            return _observableOf(result200);
+            }));
+        } else if (status === 400) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = resultData400 ? ApiResultOfString.fromJS(resultData400) : new ApiResultOfString();
+            return throwException("A server error occurred.", status, _responseText, _headers, result400);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf<ApiResultOfString>(<any>null);
+    }
+}
+
+@Injectable({
+    providedIn: 'root'
+})
 export class NewsService {
     private http: HttpClient;
     private baseUrl: string;
@@ -1066,7 +1654,7 @@ export class NewsService {
 
     constructor(@Inject(HttpClient) http: HttpClient, @Optional() @Inject(API_BASE_URL) baseUrl?: string) {
         this.http = http;
-        this.baseUrl = baseUrl ? baseUrl : "";
+        this.baseUrl = baseUrl ? baseUrl : "/api";
     }
 
     /**
@@ -1075,7 +1663,7 @@ export class NewsService {
      * @return Success
      */
     unpublished(index?: number | null | undefined, count?: number | null | undefined): Observable<ApiResultOfPagedResultDataOfIEnumerableOfNewsPostViewModel> {
-        let url_ = this.baseUrl + "/api/v1/news/unpublished?";
+        let url_ = this.baseUrl + "/v1/news/unpublished?";
         if (index !== undefined)
             url_ += "index=" + encodeURIComponent("" + index) + "&"; 
         if (count !== undefined)
@@ -1132,7 +1720,7 @@ export class NewsService {
      * @return Success
      */
     newsGet(index?: number | null | undefined, count?: number | null | undefined): Observable<ApiResultOfPagedResultDataOfIEnumerableOfNewsPostViewModel> {
-        let url_ = this.baseUrl + "/api/v1/news?";
+        let url_ = this.baseUrl + "/v1/news?";
         if (index !== undefined)
             url_ += "index=" + encodeURIComponent("" + index) + "&"; 
         if (count !== undefined)
@@ -1188,7 +1776,7 @@ export class NewsService {
      * @return Success
      */
     newsPost(newsViewModel?: NewsPostViewModel | null | undefined): Observable<ApiResultOfNewsPostViewModel> {
-        let url_ = this.baseUrl + "/api/v1/news";
+        let url_ = this.baseUrl + "/v1/news";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(newsViewModel);
@@ -1251,7 +1839,7 @@ export class NewsService {
      * @return Success
      */
     newsDelete(id?: string | null | undefined): Observable<ApiResultOfGuid> {
-        let url_ = this.baseUrl + "/api/v1/news?";
+        let url_ = this.baseUrl + "/v1/news?";
         if (id !== undefined)
             url_ += "id=" + encodeURIComponent("" + id) + "&"; 
         url_ = url_.replace(/[?&]$/, "");
@@ -1312,7 +1900,7 @@ export class NewsService {
      * @return Success
      */
     newsPatch(newsViewModel?: NewsPostViewModel | null | undefined): Observable<ApiResultOfNewsPostViewModel> {
-        let url_ = this.baseUrl + "/api/v1/news";
+        let url_ = this.baseUrl + "/v1/news";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(newsViewModel);
@@ -1374,7 +1962,7 @@ export class NewsService {
      * @return Success
      */
     newsGetByid(id: string): Observable<ApiResultOfNewsPostViewModel> {
-        let url_ = this.baseUrl + "/api/v1/news/{id}";
+        let url_ = this.baseUrl + "/v1/news/{id}";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id)); 
@@ -1428,6 +2016,90 @@ export class NewsService {
 @Injectable({
     providedIn: 'root'
 })
+export class RankingService {
+    private http: HttpClient;
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(@Inject(HttpClient) http: HttpClient, @Optional() @Inject(API_BASE_URL) baseUrl?: string) {
+        this.http = http;
+        this.baseUrl = baseUrl ? baseUrl : "/api";
+    }
+
+    /**
+     * @param index (optional) 
+     * @param count (optional) 
+     * @param orderBy (optional) 
+     * @param job (optional) 
+     * @return Success
+     */
+    ranking(index?: number | null | undefined, count?: number | null | undefined, orderBy?: string | null | undefined, job?: string | null | undefined): Observable<ApiResultOfPagedResultDataOfIEnumerableOfCharacterViewModel> {
+        let url_ = this.baseUrl + "/v1/ranking?";
+        if (index !== undefined)
+            url_ += "index=" + encodeURIComponent("" + index) + "&"; 
+        if (count !== undefined)
+            url_ += "count=" + encodeURIComponent("" + count) + "&"; 
+        if (orderBy !== undefined)
+            url_ += "orderBy=" + encodeURIComponent("" + orderBy) + "&"; 
+        if (job !== undefined)
+            url_ += "job=" + encodeURIComponent("" + job) + "&"; 
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processRanking(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processRanking(<any>response_);
+                } catch (e) {
+                    return <Observable<ApiResultOfPagedResultDataOfIEnumerableOfCharacterViewModel>><any>_observableThrow(e);
+                }
+            } else
+                return <Observable<ApiResultOfPagedResultDataOfIEnumerableOfCharacterViewModel>><any>_observableThrow(response_);
+        }));
+    }
+
+    protected processRanking(response: HttpResponseBase): Observable<ApiResultOfPagedResultDataOfIEnumerableOfCharacterViewModel> {
+        const status = response.status;
+        const responseBlob = 
+            response instanceof HttpResponse ? response.body : 
+            (<any>response).error instanceof Blob ? (<any>response).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }};
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = resultData200 ? ApiResultOfPagedResultDataOfIEnumerableOfCharacterViewModel.fromJS(resultData200) : new ApiResultOfPagedResultDataOfIEnumerableOfCharacterViewModel();
+            return _observableOf(result200);
+            }));
+        } else if (status === 400) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = resultData400 ? ApiResultOfPagedResultDataOfIEnumerableOfCharacterViewModel.fromJS(resultData400) : new ApiResultOfPagedResultDataOfIEnumerableOfCharacterViewModel();
+            return throwException("A server error occurred.", status, _responseText, _headers, result400);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf<ApiResultOfPagedResultDataOfIEnumerableOfCharacterViewModel>(<any>null);
+    }
+}
+
+@Injectable({
+    providedIn: 'root'
+})
 export class RolesService {
     private http: HttpClient;
     private baseUrl: string;
@@ -1435,14 +2107,14 @@ export class RolesService {
 
     constructor(@Inject(HttpClient) http: HttpClient, @Optional() @Inject(API_BASE_URL) baseUrl?: string) {
         this.http = http;
-        this.baseUrl = baseUrl ? baseUrl : "";
+        this.baseUrl = baseUrl ? baseUrl : "/api";
     }
 
     /**
      * @return Success
      */
     rolesGetByid(id: string): Observable<ApiResultOfStringOf> {
-        let url_ = this.baseUrl + "/api/v1/roles/{id}";
+        let url_ = this.baseUrl + "/v1/roles/{id}";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id)); 
@@ -1504,7 +2176,7 @@ export class RolesService {
      * @return Success
      */
     roles(rolesViewModel?: UpdateRolesViewModel | null | undefined): Observable<ApiResultOfUpdateRolesViewModel> {
-        let url_ = this.baseUrl + "/api/v1/roles";
+        let url_ = this.baseUrl + "/v1/roles";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(rolesViewModel);
@@ -1573,14 +2245,14 @@ export class ServiceStatusService {
 
     constructor(@Inject(HttpClient) http: HttpClient, @Optional() @Inject(API_BASE_URL) baseUrl?: string) {
         this.http = http;
-        this.baseUrl = baseUrl ? baseUrl : "";
+        this.baseUrl = baseUrl ? baseUrl : "/api";
     }
 
     /**
      * @return Success
      */
     recentHidden(): Observable<ApiResultOfIEnumerableOfServiceStatusViewModel> {
-        let url_ = this.baseUrl + "/api/v1/service-status/recent-hidden";
+        let url_ = this.baseUrl + "/v1/service-status/recent-hidden";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_ : any = {
@@ -1628,11 +2300,62 @@ export class ServiceStatusService {
     }
 
     /**
+     * @return Success
+     */
+    serviceStatusGet(): Observable<ApiResultOfIEnumerableOfServiceStatusViewModel> {
+        let url_ = this.baseUrl + "/v1/service-status";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processServiceStatusGet(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processServiceStatusGet(<any>response_);
+                } catch (e) {
+                    return <Observable<ApiResultOfIEnumerableOfServiceStatusViewModel>><any>_observableThrow(e);
+                }
+            } else
+                return <Observable<ApiResultOfIEnumerableOfServiceStatusViewModel>><any>_observableThrow(response_);
+        }));
+    }
+
+    protected processServiceStatusGet(response: HttpResponseBase): Observable<ApiResultOfIEnumerableOfServiceStatusViewModel> {
+        const status = response.status;
+        const responseBlob = 
+            response instanceof HttpResponse ? response.body : 
+            (<any>response).error instanceof Blob ? (<any>response).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }};
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = resultData200 ? ApiResultOfIEnumerableOfServiceStatusViewModel.fromJS(resultData200) : new ApiResultOfIEnumerableOfServiceStatusViewModel();
+            return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf<ApiResultOfIEnumerableOfServiceStatusViewModel>(<any>null);
+    }
+
+    /**
      * @param model (optional) 
      * @return Success
      */
     serviceStatusPost(model?: ServiceStatusViewModel | null | undefined): Observable<ApiResultOfServiceStatusViewModel> {
-        let url_ = this.baseUrl + "/api/v1/service-status";
+        let url_ = this.baseUrl + "/v1/service-status";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(model);
@@ -1695,7 +2418,7 @@ export class ServiceStatusService {
      * @return Success
      */
     serviceStatusDelete(id?: string | null | undefined): Observable<string> {
-        let url_ = this.baseUrl + "/api/v1/service-status?";
+        let url_ = this.baseUrl + "/v1/service-status?";
         if (id !== undefined)
             url_ += "id=" + encodeURIComponent("" + id) + "&"; 
         url_ = url_.replace(/[?&]$/, "");
@@ -1749,7 +2472,7 @@ export class ServiceStatusService {
      * @return Success
      */
     serviceStatusPatch(model?: ServiceStatusViewModel | null | undefined): Observable<ApiResultOfServiceStatusViewModel> {
-        let url_ = this.baseUrl + "/api/v1/service-status";
+        let url_ = this.baseUrl + "/v1/service-status";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(model);
@@ -1805,6 +2528,554 @@ export class ServiceStatusService {
             }));
         }
         return _observableOf<ApiResultOfServiceStatusViewModel>(<any>null);
+    }
+}
+
+@Injectable({
+    providedIn: 'root'
+})
+export class StatisticsService {
+    private http: HttpClient;
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(@Inject(HttpClient) http: HttpClient, @Optional() @Inject(API_BASE_URL) baseUrl?: string) {
+        this.http = http;
+        this.baseUrl = baseUrl ? baseUrl : "/api";
+    }
+
+    /**
+     * @param from (optional) 
+     * @param until (optional) 
+     * @param statGroup (optional) 
+     * @param statName (optional) 
+     * @param interval (optional) 
+     * @return Success
+     */
+    statisticsGet(from?: string | null | undefined, until?: string | null | undefined, statGroup?: string | null | undefined, statName?: string | null | undefined, interval?: string | null | undefined): Observable<ApiResultOfIEnumerableOfStatisticsEntryViewModel> {
+        let url_ = this.baseUrl + "/v1/statistics?";
+        if (from !== undefined)
+            url_ += "from=" + encodeURIComponent("" + from) + "&"; 
+        if (until !== undefined)
+            url_ += "until=" + encodeURIComponent("" + until) + "&"; 
+        if (statGroup !== undefined)
+            url_ += "statGroup=" + encodeURIComponent("" + statGroup) + "&"; 
+        if (statName !== undefined)
+            url_ += "statName=" + encodeURIComponent("" + statName) + "&"; 
+        if (interval !== undefined)
+            url_ += "interval=" + encodeURIComponent("" + interval) + "&"; 
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processStatisticsGet(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processStatisticsGet(<any>response_);
+                } catch (e) {
+                    return <Observable<ApiResultOfIEnumerableOfStatisticsEntryViewModel>><any>_observableThrow(e);
+                }
+            } else
+                return <Observable<ApiResultOfIEnumerableOfStatisticsEntryViewModel>><any>_observableThrow(response_);
+        }));
+    }
+
+    protected processStatisticsGet(response: HttpResponseBase): Observable<ApiResultOfIEnumerableOfStatisticsEntryViewModel> {
+        const status = response.status;
+        const responseBlob = 
+            response instanceof HttpResponse ? response.body : 
+            (<any>response).error instanceof Blob ? (<any>response).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }};
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = resultData200 ? ApiResultOfIEnumerableOfStatisticsEntryViewModel.fromJS(resultData200) : new ApiResultOfIEnumerableOfStatisticsEntryViewModel();
+            return _observableOf(result200);
+            }));
+        } else if (status === 400) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = resultData400 ? ApiResultOfIEnumerableOfStatisticsEntryViewModel.fromJS(resultData400) : new ApiResultOfIEnumerableOfStatisticsEntryViewModel();
+            return throwException("A server error occurred.", status, _responseText, _headers, result400);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf<ApiResultOfIEnumerableOfStatisticsEntryViewModel>(<any>null);
+    }
+
+    /**
+     * @param model (optional) 
+     * @return Success
+     */
+    statisticsPost(model?: StatisticsEntryViewModel | null | undefined): Observable<void> {
+        let url_ = this.baseUrl + "/v1/statistics";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(model);
+
+        let options_ : any = {
+            body: content_,
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Content-Type": "application/json", 
+            })
+        };
+
+        return this.http.request("post", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processStatisticsPost(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processStatisticsPost(<any>response_);
+                } catch (e) {
+                    return <Observable<void>><any>_observableThrow(e);
+                }
+            } else
+                return <Observable<void>><any>_observableThrow(response_);
+        }));
+    }
+
+    protected processStatisticsPost(response: HttpResponseBase): Observable<void> {
+        const status = response.status;
+        const responseBlob = 
+            response instanceof HttpResponse ? response.body : 
+            (<any>response).error instanceof Blob ? (<any>response).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }};
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return _observableOf<void>(<any>null);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf<void>(<any>null);
+    }
+}
+
+@Injectable({
+    providedIn: 'root'
+})
+export class TransactionsService {
+    private http: HttpClient;
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(@Inject(HttpClient) http: HttpClient, @Optional() @Inject(API_BASE_URL) baseUrl?: string) {
+        this.http = http;
+        this.baseUrl = baseUrl ? baseUrl : "/api";
+    }
+
+    /**
+     * @return Success
+     */
+    transactionsGet(): Observable<ApiResultOfIEnumerableOfTransactionViewModel> {
+        let url_ = this.baseUrl + "/v1/transactions";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processTransactionsGet(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processTransactionsGet(<any>response_);
+                } catch (e) {
+                    return <Observable<ApiResultOfIEnumerableOfTransactionViewModel>><any>_observableThrow(e);
+                }
+            } else
+                return <Observable<ApiResultOfIEnumerableOfTransactionViewModel>><any>_observableThrow(response_);
+        }));
+    }
+
+    protected processTransactionsGet(response: HttpResponseBase): Observable<ApiResultOfIEnumerableOfTransactionViewModel> {
+        const status = response.status;
+        const responseBlob = 
+            response instanceof HttpResponse ? response.body : 
+            (<any>response).error instanceof Blob ? (<any>response).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }};
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = resultData200 ? ApiResultOfIEnumerableOfTransactionViewModel.fromJS(resultData200) : new ApiResultOfIEnumerableOfTransactionViewModel();
+            return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf<ApiResultOfIEnumerableOfTransactionViewModel>(<any>null);
+    }
+
+    /**
+     * @param viewModel (optional) 
+     * @return Success
+     */
+    transactionsPatch(viewModel?: TransactionViewModel | null | undefined): Observable<ApiResultOfTransactionViewModel> {
+        let url_ = this.baseUrl + "/v1/transactions";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(viewModel);
+
+        let options_ : any = {
+            body: content_,
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Content-Type": "application/json", 
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("patch", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processTransactionsPatch(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processTransactionsPatch(<any>response_);
+                } catch (e) {
+                    return <Observable<ApiResultOfTransactionViewModel>><any>_observableThrow(e);
+                }
+            } else
+                return <Observable<ApiResultOfTransactionViewModel>><any>_observableThrow(response_);
+        }));
+    }
+
+    protected processTransactionsPatch(response: HttpResponseBase): Observable<ApiResultOfTransactionViewModel> {
+        const status = response.status;
+        const responseBlob = 
+            response instanceof HttpResponse ? response.body : 
+            (<any>response).error instanceof Blob ? (<any>response).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }};
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = resultData200 ? ApiResultOfTransactionViewModel.fromJS(resultData200) : new ApiResultOfTransactionViewModel();
+            return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf<ApiResultOfTransactionViewModel>(<any>null);
+    }
+
+    /**
+     * @param viewModel (optional) 
+     * @return Success
+     */
+    withdraw(viewModel?: WithdrawCurrencyViewModel | null | undefined): Observable<ApiResultOfWithdrawCurrencyViewModel> {
+        let url_ = this.baseUrl + "/v1/transactions/withdraw";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(viewModel);
+
+        let options_ : any = {
+            body: content_,
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Content-Type": "application/json", 
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("post", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processWithdraw(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processWithdraw(<any>response_);
+                } catch (e) {
+                    return <Observable<ApiResultOfWithdrawCurrencyViewModel>><any>_observableThrow(e);
+                }
+            } else
+                return <Observable<ApiResultOfWithdrawCurrencyViewModel>><any>_observableThrow(response_);
+        }));
+    }
+
+    protected processWithdraw(response: HttpResponseBase): Observable<ApiResultOfWithdrawCurrencyViewModel> {
+        const status = response.status;
+        const responseBlob = 
+            response instanceof HttpResponse ? response.body : 
+            (<any>response).error instanceof Blob ? (<any>response).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }};
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = resultData200 ? ApiResultOfWithdrawCurrencyViewModel.fromJS(resultData200) : new ApiResultOfWithdrawCurrencyViewModel();
+            return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf<ApiResultOfWithdrawCurrencyViewModel>(<any>null);
+    }
+}
+
+@Injectable({
+    providedIn: 'root'
+})
+export class VoteService {
+    private http: HttpClient;
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(@Inject(HttpClient) http: HttpClient, @Optional() @Inject(API_BASE_URL) baseUrl?: string) {
+        this.http = http;
+        this.baseUrl = baseUrl ? baseUrl : "/api";
+    }
+
+    /**
+     * @param voterIP (optional) 
+     * @param successful (optional) 
+     * @param reason (optional) 
+     * @param pingUsername (optional) 
+     * @return Success
+     */
+    pingback(voterIP?: string | null | undefined, successful?: string | null | undefined, reason?: string | null | undefined, pingUsername?: string | null | undefined): Observable<void> {
+        let url_ = this.baseUrl + "/v1/vote/pingback?";
+        if (voterIP !== undefined)
+            url_ += "VoterIP=" + encodeURIComponent("" + voterIP) + "&"; 
+        if (successful !== undefined)
+            url_ += "Successful=" + encodeURIComponent("" + successful) + "&"; 
+        if (reason !== undefined)
+            url_ += "Reason=" + encodeURIComponent("" + reason) + "&"; 
+        if (pingUsername !== undefined)
+            url_ += "pingUsername=" + encodeURIComponent("" + pingUsername) + "&"; 
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+            })
+        };
+
+        return this.http.request("post", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processPingback(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processPingback(<any>response_);
+                } catch (e) {
+                    return <Observable<void>><any>_observableThrow(e);
+                }
+            } else
+                return <Observable<void>><any>_observableThrow(response_);
+        }));
+    }
+
+    protected processPingback(response: HttpResponseBase): Observable<void> {
+        const status = response.status;
+        const responseBlob = 
+            response instanceof HttpResponse ? response.body : 
+            (<any>response).error instanceof Blob ? (<any>response).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }};
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return _observableOf<void>(<any>null);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf<void>(<any>null);
+    }
+
+    /**
+     * @param index (optional) 
+     * @param count (optional) 
+     * @return Success
+     */
+    vote(index?: number | null | undefined, count?: number | null | undefined): Observable<ApiResultOfPagedResultDataOfIEnumerableOfTransactionViewModel> {
+        let url_ = this.baseUrl + "/v1/vote?";
+        if (index !== undefined)
+            url_ += "index=" + encodeURIComponent("" + index) + "&"; 
+        if (count !== undefined)
+            url_ += "count=" + encodeURIComponent("" + count) + "&"; 
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processVote(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processVote(<any>response_);
+                } catch (e) {
+                    return <Observable<ApiResultOfPagedResultDataOfIEnumerableOfTransactionViewModel>><any>_observableThrow(e);
+                }
+            } else
+                return <Observable<ApiResultOfPagedResultDataOfIEnumerableOfTransactionViewModel>><any>_observableThrow(response_);
+        }));
+    }
+
+    protected processVote(response: HttpResponseBase): Observable<ApiResultOfPagedResultDataOfIEnumerableOfTransactionViewModel> {
+        const status = response.status;
+        const responseBlob = 
+            response instanceof HttpResponse ? response.body : 
+            (<any>response).error instanceof Blob ? (<any>response).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }};
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = resultData200 ? ApiResultOfPagedResultDataOfIEnumerableOfTransactionViewModel.fromJS(resultData200) : new ApiResultOfPagedResultDataOfIEnumerableOfTransactionViewModel();
+            return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf<ApiResultOfPagedResultDataOfIEnumerableOfTransactionViewModel>(<any>null);
+    }
+
+    /**
+     * @return Success
+     */
+    balance(): Observable<ApiResultOfInt32> {
+        let url_ = this.baseUrl + "/v1/vote/balance";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processBalance(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processBalance(<any>response_);
+                } catch (e) {
+                    return <Observable<ApiResultOfInt32>><any>_observableThrow(e);
+                }
+            } else
+                return <Observable<ApiResultOfInt32>><any>_observableThrow(response_);
+        }));
+    }
+
+    protected processBalance(response: HttpResponseBase): Observable<ApiResultOfInt32> {
+        const status = response.status;
+        const responseBlob = 
+            response instanceof HttpResponse ? response.body : 
+            (<any>response).error instanceof Blob ? (<any>response).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }};
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = resultData200 ? ApiResultOfInt32.fromJS(resultData200) : new ApiResultOfInt32();
+            return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf<ApiResultOfInt32>(<any>null);
+    }
+
+    /**
+     * @return Success
+     */
+    status(): Observable<ApiResultOfVoteState> {
+        let url_ = this.baseUrl + "/v1/vote/status";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processStatus(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processStatus(<any>response_);
+                } catch (e) {
+                    return <Observable<ApiResultOfVoteState>><any>_observableThrow(e);
+                }
+            } else
+                return <Observable<ApiResultOfVoteState>><any>_observableThrow(response_);
+        }));
+    }
+
+    protected processStatus(response: HttpResponseBase): Observable<ApiResultOfVoteState> {
+        const status = response.status;
+        const responseBlob = 
+            response instanceof HttpResponse ? response.body : 
+            (<any>response).error instanceof Blob ? (<any>response).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }};
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = resultData200 ? ApiResultOfVoteState.fromJS(resultData200) : new ApiResultOfVoteState();
+            return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf<ApiResultOfVoteState>(<any>null);
     }
 }
 
@@ -2408,6 +3679,194 @@ export interface IApiResultOfChangePasswordViewModel {
     errors?: string[] | null;
 }
 
+export class ForgotPasswordViewModel implements IForgotPasswordViewModel {
+    email!: string;
+
+    constructor(data?: IForgotPasswordViewModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(data?: any) {
+        if (data) {
+            this.email = data["email"] !== undefined ? data["email"] : <any>null;
+        }
+    }
+
+    static fromJS(data: any): ForgotPasswordViewModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new ForgotPasswordViewModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["email"] = this.email !== undefined ? this.email : <any>null;
+        return data; 
+    }
+}
+
+export interface IForgotPasswordViewModel {
+    email: string;
+}
+
+export class ApiResultOfForgotPasswordViewModel implements IApiResultOfForgotPasswordViewModel {
+    data?: ForgotPasswordViewModel | null;
+    success?: boolean | null;
+    errors?: string[] | null;
+
+    constructor(data?: IApiResultOfForgotPasswordViewModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(data?: any) {
+        if (data) {
+            this.data = data["data"] ? ForgotPasswordViewModel.fromJS(data["data"]) : <any>null;
+            this.success = data["success"] !== undefined ? data["success"] : <any>null;
+            if (data["errors"] && data["errors"].constructor === Array) {
+                this.errors = [] as any;
+                for (let item of data["errors"])
+                    this.errors!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): ApiResultOfForgotPasswordViewModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new ApiResultOfForgotPasswordViewModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["data"] = this.data ? this.data.toJSON() : <any>null;
+        data["success"] = this.success !== undefined ? this.success : <any>null;
+        if (this.errors && this.errors.constructor === Array) {
+            data["errors"] = [];
+            for (let item of this.errors)
+                data["errors"].push(item);
+        }
+        return data; 
+    }
+}
+
+export interface IApiResultOfForgotPasswordViewModel {
+    data?: ForgotPasswordViewModel | null;
+    success?: boolean | null;
+    errors?: string[] | null;
+}
+
+export class ResetPasswordViewModel implements IResetPasswordViewModel {
+    email!: string;
+    password!: string;
+    confirmPassword?: string | null;
+    code?: string | null;
+
+    constructor(data?: IResetPasswordViewModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(data?: any) {
+        if (data) {
+            this.email = data["email"] !== undefined ? data["email"] : <any>null;
+            this.password = data["password"] !== undefined ? data["password"] : <any>null;
+            this.confirmPassword = data["confirmPassword"] !== undefined ? data["confirmPassword"] : <any>null;
+            this.code = data["code"] !== undefined ? data["code"] : <any>null;
+        }
+    }
+
+    static fromJS(data: any): ResetPasswordViewModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new ResetPasswordViewModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["email"] = this.email !== undefined ? this.email : <any>null;
+        data["password"] = this.password !== undefined ? this.password : <any>null;
+        data["confirmPassword"] = this.confirmPassword !== undefined ? this.confirmPassword : <any>null;
+        data["code"] = this.code !== undefined ? this.code : <any>null;
+        return data; 
+    }
+}
+
+export interface IResetPasswordViewModel {
+    email: string;
+    password: string;
+    confirmPassword?: string | null;
+    code?: string | null;
+}
+
+export class ApiResultOfResetPasswordViewModel implements IApiResultOfResetPasswordViewModel {
+    data?: ResetPasswordViewModel | null;
+    success?: boolean | null;
+    errors?: string[] | null;
+
+    constructor(data?: IApiResultOfResetPasswordViewModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(data?: any) {
+        if (data) {
+            this.data = data["data"] ? ResetPasswordViewModel.fromJS(data["data"]) : <any>null;
+            this.success = data["success"] !== undefined ? data["success"] : <any>null;
+            if (data["errors"] && data["errors"].constructor === Array) {
+                this.errors = [] as any;
+                for (let item of data["errors"])
+                    this.errors!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): ApiResultOfResetPasswordViewModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new ApiResultOfResetPasswordViewModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["data"] = this.data ? this.data.toJSON() : <any>null;
+        data["success"] = this.success !== undefined ? this.success : <any>null;
+        if (this.errors && this.errors.constructor === Array) {
+            data["errors"] = [];
+            for (let item of this.errors)
+                data["errors"].push(item);
+        }
+        return data; 
+    }
+}
+
+export interface IApiResultOfResetPasswordViewModel {
+    data?: ResetPasswordViewModel | null;
+    success?: boolean | null;
+    errors?: string[] | null;
+}
+
 export class ApiResultOfIEnumerableOfString implements IApiResultOfIEnumerableOfString {
     data?: string[] | null;
     success?: boolean | null;
@@ -2744,12 +4203,12 @@ export interface IApiResultOfIPagedListOfGameAccountViewModel {
     errors?: string[] | null;
 }
 
-export class ApiResultOfObject implements IApiResultOfObject {
-    data?: any | null;
+export class ApiResultOfPagedResultDataOfIEnumerableOfCharacterAdminViewModel implements IApiResultOfPagedResultDataOfIEnumerableOfCharacterAdminViewModel {
+    data?: PagedResultDataOfIEnumerableOfCharacterAdminViewModel | null;
     success?: boolean | null;
     errors?: string[] | null;
 
-    constructor(data?: IApiResultOfObject) {
+    constructor(data?: IApiResultOfPagedResultDataOfIEnumerableOfCharacterAdminViewModel) {
         if (data) {
             for (var property in data) {
                 if (data.hasOwnProperty(property))
@@ -2760,7 +4219,7 @@ export class ApiResultOfObject implements IApiResultOfObject {
 
     init(data?: any) {
         if (data) {
-            this.data = data["data"] !== undefined ? data["data"] : <any>null;
+            this.data = data["data"] ? PagedResultDataOfIEnumerableOfCharacterAdminViewModel.fromJS(data["data"]) : <any>null;
             this.success = data["success"] !== undefined ? data["success"] : <any>null;
             if (data["errors"] && data["errors"].constructor === Array) {
                 this.errors = [] as any;
@@ -2770,16 +4229,16 @@ export class ApiResultOfObject implements IApiResultOfObject {
         }
     }
 
-    static fromJS(data: any): ApiResultOfObject {
+    static fromJS(data: any): ApiResultOfPagedResultDataOfIEnumerableOfCharacterAdminViewModel {
         data = typeof data === 'object' ? data : {};
-        let result = new ApiResultOfObject();
+        let result = new ApiResultOfPagedResultDataOfIEnumerableOfCharacterAdminViewModel();
         result.init(data);
         return result;
     }
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["data"] = this.data !== undefined ? this.data : <any>null;
+        data["data"] = this.data ? this.data.toJSON() : <any>null;
         data["success"] = this.success !== undefined ? this.success : <any>null;
         if (this.errors && this.errors.constructor === Array) {
             data["errors"] = [];
@@ -2790,10 +4249,454 @@ export class ApiResultOfObject implements IApiResultOfObject {
     }
 }
 
-export interface IApiResultOfObject {
-    data?: any | null;
+export interface IApiResultOfPagedResultDataOfIEnumerableOfCharacterAdminViewModel {
+    data?: PagedResultDataOfIEnumerableOfCharacterAdminViewModel | null;
     success?: boolean | null;
     errors?: string[] | null;
+}
+
+export class PagedResultDataOfIEnumerableOfCharacterAdminViewModel implements IPagedResultDataOfIEnumerableOfCharacterAdminViewModel {
+    content?: CharacterAdminViewModel[] | null;
+    recordCount?: number | null;
+    currentIndex?: number | null;
+    currentCountPerPage?: number | null;
+    pageCount?: number | null;
+
+    constructor(data?: IPagedResultDataOfIEnumerableOfCharacterAdminViewModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(data?: any) {
+        if (data) {
+            if (data["content"] && data["content"].constructor === Array) {
+                this.content = [] as any;
+                for (let item of data["content"])
+                    this.content!.push(CharacterAdminViewModel.fromJS(item));
+            }
+            this.recordCount = data["recordCount"] !== undefined ? data["recordCount"] : <any>null;
+            this.currentIndex = data["currentIndex"] !== undefined ? data["currentIndex"] : <any>null;
+            this.currentCountPerPage = data["currentCountPerPage"] !== undefined ? data["currentCountPerPage"] : <any>null;
+            this.pageCount = data["pageCount"] !== undefined ? data["pageCount"] : <any>null;
+        }
+    }
+
+    static fromJS(data: any): PagedResultDataOfIEnumerableOfCharacterAdminViewModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new PagedResultDataOfIEnumerableOfCharacterAdminViewModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        if (this.content && this.content.constructor === Array) {
+            data["content"] = [];
+            for (let item of this.content)
+                data["content"].push(item.toJSON());
+        }
+        data["recordCount"] = this.recordCount !== undefined ? this.recordCount : <any>null;
+        data["currentIndex"] = this.currentIndex !== undefined ? this.currentIndex : <any>null;
+        data["currentCountPerPage"] = this.currentCountPerPage !== undefined ? this.currentCountPerPage : <any>null;
+        data["pageCount"] = this.pageCount !== undefined ? this.pageCount : <any>null;
+        return data; 
+    }
+}
+
+export interface IPagedResultDataOfIEnumerableOfCharacterAdminViewModel {
+    content?: CharacterAdminViewModel[] | null;
+    recordCount?: number | null;
+    currentIndex?: number | null;
+    currentCountPerPage?: number | null;
+    pageCount?: number | null;
+}
+
+export class CharacterAdminViewModel implements ICharacterAdminViewModel {
+    id?: string | null;
+    updatedOn?: Date | null;
+    updateId?: string | null;
+    isStaff?: boolean | null;
+    playerId?: string | null;
+    account?: string | null;
+    name?: string | null;
+    class?: string | null;
+    gearScore?: number | null;
+    level?: number | null;
+    playTime?: number | null;
+    createdOn?: Date | null;
+    strength?: number | null;
+    dexterity?: number | null;
+    stamina?: number | null;
+    intelligence?: number | null;
+    perin?: number | null;
+    penya?: number | null;
+    redChips?: number | null;
+    euphresiaCoins?: number | null;
+    votePoints?: number | null;
+    donateCoins?: number | null;
+    bossKills?: number | null;
+    isDeleted?: boolean | null;
+
+    constructor(data?: ICharacterAdminViewModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(data?: any) {
+        if (data) {
+            this.id = data["id"] !== undefined ? data["id"] : <any>null;
+            this.updatedOn = data["updatedOn"] ? new Date(data["updatedOn"].toString()) : <any>null;
+            this.updateId = data["updateId"] !== undefined ? data["updateId"] : <any>null;
+            this.isStaff = data["isStaff"] !== undefined ? data["isStaff"] : <any>null;
+            this.playerId = data["playerId"] !== undefined ? data["playerId"] : <any>null;
+            this.account = data["account"] !== undefined ? data["account"] : <any>null;
+            this.name = data["name"] !== undefined ? data["name"] : <any>null;
+            this.class = data["class"] !== undefined ? data["class"] : <any>null;
+            this.gearScore = data["gearScore"] !== undefined ? data["gearScore"] : <any>null;
+            this.level = data["level"] !== undefined ? data["level"] : <any>null;
+            this.playTime = data["playTime"] !== undefined ? data["playTime"] : <any>null;
+            this.createdOn = data["createdOn"] ? new Date(data["createdOn"].toString()) : <any>null;
+            this.strength = data["strength"] !== undefined ? data["strength"] : <any>null;
+            this.dexterity = data["dexterity"] !== undefined ? data["dexterity"] : <any>null;
+            this.stamina = data["stamina"] !== undefined ? data["stamina"] : <any>null;
+            this.intelligence = data["intelligence"] !== undefined ? data["intelligence"] : <any>null;
+            this.perin = data["perin"] !== undefined ? data["perin"] : <any>null;
+            this.penya = data["penya"] !== undefined ? data["penya"] : <any>null;
+            this.redChips = data["redChips"] !== undefined ? data["redChips"] : <any>null;
+            this.euphresiaCoins = data["euphresiaCoins"] !== undefined ? data["euphresiaCoins"] : <any>null;
+            this.votePoints = data["votePoints"] !== undefined ? data["votePoints"] : <any>null;
+            this.donateCoins = data["donateCoins"] !== undefined ? data["donateCoins"] : <any>null;
+            this.bossKills = data["bossKills"] !== undefined ? data["bossKills"] : <any>null;
+            this.isDeleted = data["isDeleted"] !== undefined ? data["isDeleted"] : <any>null;
+        }
+    }
+
+    static fromJS(data: any): CharacterAdminViewModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new CharacterAdminViewModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id !== undefined ? this.id : <any>null;
+        data["updatedOn"] = this.updatedOn ? this.updatedOn.toISOString() : <any>null;
+        data["updateId"] = this.updateId !== undefined ? this.updateId : <any>null;
+        data["isStaff"] = this.isStaff !== undefined ? this.isStaff : <any>null;
+        data["playerId"] = this.playerId !== undefined ? this.playerId : <any>null;
+        data["account"] = this.account !== undefined ? this.account : <any>null;
+        data["name"] = this.name !== undefined ? this.name : <any>null;
+        data["class"] = this.class !== undefined ? this.class : <any>null;
+        data["gearScore"] = this.gearScore !== undefined ? this.gearScore : <any>null;
+        data["level"] = this.level !== undefined ? this.level : <any>null;
+        data["playTime"] = this.playTime !== undefined ? this.playTime : <any>null;
+        data["createdOn"] = this.createdOn ? this.createdOn.toISOString() : <any>null;
+        data["strength"] = this.strength !== undefined ? this.strength : <any>null;
+        data["dexterity"] = this.dexterity !== undefined ? this.dexterity : <any>null;
+        data["stamina"] = this.stamina !== undefined ? this.stamina : <any>null;
+        data["intelligence"] = this.intelligence !== undefined ? this.intelligence : <any>null;
+        data["perin"] = this.perin !== undefined ? this.perin : <any>null;
+        data["penya"] = this.penya !== undefined ? this.penya : <any>null;
+        data["redChips"] = this.redChips !== undefined ? this.redChips : <any>null;
+        data["euphresiaCoins"] = this.euphresiaCoins !== undefined ? this.euphresiaCoins : <any>null;
+        data["votePoints"] = this.votePoints !== undefined ? this.votePoints : <any>null;
+        data["donateCoins"] = this.donateCoins !== undefined ? this.donateCoins : <any>null;
+        data["bossKills"] = this.bossKills !== undefined ? this.bossKills : <any>null;
+        data["isDeleted"] = this.isDeleted !== undefined ? this.isDeleted : <any>null;
+        return data; 
+    }
+}
+
+export interface ICharacterAdminViewModel {
+    id?: string | null;
+    updatedOn?: Date | null;
+    updateId?: string | null;
+    isStaff?: boolean | null;
+    playerId?: string | null;
+    account?: string | null;
+    name?: string | null;
+    class?: string | null;
+    gearScore?: number | null;
+    level?: number | null;
+    playTime?: number | null;
+    createdOn?: Date | null;
+    strength?: number | null;
+    dexterity?: number | null;
+    stamina?: number | null;
+    intelligence?: number | null;
+    perin?: number | null;
+    penya?: number | null;
+    redChips?: number | null;
+    euphresiaCoins?: number | null;
+    votePoints?: number | null;
+    donateCoins?: number | null;
+    bossKills?: number | null;
+    isDeleted?: boolean | null;
+}
+
+export class ApiResultOfIEnumerableOfCharacterViewModel implements IApiResultOfIEnumerableOfCharacterViewModel {
+    data?: CharacterViewModel[] | null;
+    success?: boolean | null;
+    errors?: string[] | null;
+
+    constructor(data?: IApiResultOfIEnumerableOfCharacterViewModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(data?: any) {
+        if (data) {
+            if (data["data"] && data["data"].constructor === Array) {
+                this.data = [] as any;
+                for (let item of data["data"])
+                    this.data!.push(CharacterViewModel.fromJS(item));
+            }
+            this.success = data["success"] !== undefined ? data["success"] : <any>null;
+            if (data["errors"] && data["errors"].constructor === Array) {
+                this.errors = [] as any;
+                for (let item of data["errors"])
+                    this.errors!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): ApiResultOfIEnumerableOfCharacterViewModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new ApiResultOfIEnumerableOfCharacterViewModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        if (this.data && this.data.constructor === Array) {
+            data["data"] = [];
+            for (let item of this.data)
+                data["data"].push(item.toJSON());
+        }
+        data["success"] = this.success !== undefined ? this.success : <any>null;
+        if (this.errors && this.errors.constructor === Array) {
+            data["errors"] = [];
+            for (let item of this.errors)
+                data["errors"].push(item);
+        }
+        return data; 
+    }
+}
+
+export interface IApiResultOfIEnumerableOfCharacterViewModel {
+    data?: CharacterViewModel[] | null;
+    success?: boolean | null;
+    errors?: string[] | null;
+}
+
+export class CharacterViewModel implements ICharacterViewModel {
+    name?: string | null;
+    class?: string | null;
+    gearScore?: number | null;
+    level?: number | null;
+    playTime?: number | null;
+    strength?: number | null;
+    dexterity?: number | null;
+    stamina?: number | null;
+    intelligence?: number | null;
+    bossKills?: number | null;
+
+    constructor(data?: ICharacterViewModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(data?: any) {
+        if (data) {
+            this.name = data["name"] !== undefined ? data["name"] : <any>null;
+            this.class = data["class"] !== undefined ? data["class"] : <any>null;
+            this.gearScore = data["gearScore"] !== undefined ? data["gearScore"] : <any>null;
+            this.level = data["level"] !== undefined ? data["level"] : <any>null;
+            this.playTime = data["playTime"] !== undefined ? data["playTime"] : <any>null;
+            this.strength = data["strength"] !== undefined ? data["strength"] : <any>null;
+            this.dexterity = data["dexterity"] !== undefined ? data["dexterity"] : <any>null;
+            this.stamina = data["stamina"] !== undefined ? data["stamina"] : <any>null;
+            this.intelligence = data["intelligence"] !== undefined ? data["intelligence"] : <any>null;
+            this.bossKills = data["bossKills"] !== undefined ? data["bossKills"] : <any>null;
+        }
+    }
+
+    static fromJS(data: any): CharacterViewModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new CharacterViewModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["name"] = this.name !== undefined ? this.name : <any>null;
+        data["class"] = this.class !== undefined ? this.class : <any>null;
+        data["gearScore"] = this.gearScore !== undefined ? this.gearScore : <any>null;
+        data["level"] = this.level !== undefined ? this.level : <any>null;
+        data["playTime"] = this.playTime !== undefined ? this.playTime : <any>null;
+        data["strength"] = this.strength !== undefined ? this.strength : <any>null;
+        data["dexterity"] = this.dexterity !== undefined ? this.dexterity : <any>null;
+        data["stamina"] = this.stamina !== undefined ? this.stamina : <any>null;
+        data["intelligence"] = this.intelligence !== undefined ? this.intelligence : <any>null;
+        data["bossKills"] = this.bossKills !== undefined ? this.bossKills : <any>null;
+        return data; 
+    }
+}
+
+export interface ICharacterViewModel {
+    name?: string | null;
+    class?: string | null;
+    gearScore?: number | null;
+    level?: number | null;
+    playTime?: number | null;
+    strength?: number | null;
+    dexterity?: number | null;
+    stamina?: number | null;
+    intelligence?: number | null;
+    bossKills?: number | null;
+}
+
+export class ApiResultOfIListOfStoredEvent implements IApiResultOfIListOfStoredEvent {
+    data?: StoredEvent[] | null;
+    success?: boolean | null;
+    errors?: string[] | null;
+
+    constructor(data?: IApiResultOfIListOfStoredEvent) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(data?: any) {
+        if (data) {
+            if (data["data"] && data["data"].constructor === Array) {
+                this.data = [] as any;
+                for (let item of data["data"])
+                    this.data!.push(StoredEvent.fromJS(item));
+            }
+            this.success = data["success"] !== undefined ? data["success"] : <any>null;
+            if (data["errors"] && data["errors"].constructor === Array) {
+                this.errors = [] as any;
+                for (let item of data["errors"])
+                    this.errors!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): ApiResultOfIListOfStoredEvent {
+        data = typeof data === 'object' ? data : {};
+        let result = new ApiResultOfIListOfStoredEvent();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        if (this.data && this.data.constructor === Array) {
+            data["data"] = [];
+            for (let item of this.data)
+                data["data"].push(item.toJSON());
+        }
+        data["success"] = this.success !== undefined ? this.success : <any>null;
+        if (this.errors && this.errors.constructor === Array) {
+            data["errors"] = [];
+            for (let item of this.errors)
+                data["errors"].push(item);
+        }
+        return data; 
+    }
+}
+
+export interface IApiResultOfIListOfStoredEvent {
+    data?: StoredEvent[] | null;
+    success?: boolean | null;
+    errors?: string[] | null;
+}
+
+export class StoredEvent implements IStoredEvent {
+    id?: string | null;
+    data?: string | null;
+    user?: string | null;
+    handled?: boolean | null;
+    handledTimeStamp?: Date | null;
+    timestamp?: Date | null;
+    messageType?: string | null;
+    aggregateId?: string | null;
+
+    constructor(data?: IStoredEvent) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(data?: any) {
+        if (data) {
+            this.id = data["id"] !== undefined ? data["id"] : <any>null;
+            this.data = data["data"] !== undefined ? data["data"] : <any>null;
+            this.user = data["user"] !== undefined ? data["user"] : <any>null;
+            this.handled = data["handled"] !== undefined ? data["handled"] : <any>null;
+            this.handledTimeStamp = data["handledTimeStamp"] ? new Date(data["handledTimeStamp"].toString()) : <any>null;
+            this.timestamp = data["timestamp"] ? new Date(data["timestamp"].toString()) : <any>null;
+            this.messageType = data["messageType"] !== undefined ? data["messageType"] : <any>null;
+            this.aggregateId = data["aggregateId"] !== undefined ? data["aggregateId"] : <any>null;
+        }
+    }
+
+    static fromJS(data: any): StoredEvent {
+        data = typeof data === 'object' ? data : {};
+        let result = new StoredEvent();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id !== undefined ? this.id : <any>null;
+        data["data"] = this.data !== undefined ? this.data : <any>null;
+        data["user"] = this.user !== undefined ? this.user : <any>null;
+        data["handled"] = this.handled !== undefined ? this.handled : <any>null;
+        data["handledTimeStamp"] = this.handledTimeStamp ? this.handledTimeStamp.toISOString() : <any>null;
+        data["timestamp"] = this.timestamp ? this.timestamp.toISOString() : <any>null;
+        data["messageType"] = this.messageType !== undefined ? this.messageType : <any>null;
+        data["aggregateId"] = this.aggregateId !== undefined ? this.aggregateId : <any>null;
+        return data; 
+    }
+}
+
+export interface IStoredEvent {
+    id?: string | null;
+    data?: string | null;
+    user?: string | null;
+    handled?: boolean | null;
+    handledTimeStamp?: Date | null;
+    timestamp?: Date | null;
+    messageType?: string | null;
+    aggregateId?: string | null;
 }
 
 export class ApiResultOfGuid implements IApiResultOfGuid {
@@ -2844,6 +4747,170 @@ export class ApiResultOfGuid implements IApiResultOfGuid {
 
 export interface IApiResultOfGuid {
     data?: string | null;
+    success?: boolean | null;
+    errors?: string[] | null;
+}
+
+export class ApiResultOfIEnumerableOfGenericObjectViewModel implements IApiResultOfIEnumerableOfGenericObjectViewModel {
+    data?: GenericObjectViewModel[] | null;
+    success?: boolean | null;
+    errors?: string[] | null;
+
+    constructor(data?: IApiResultOfIEnumerableOfGenericObjectViewModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(data?: any) {
+        if (data) {
+            if (data["data"] && data["data"].constructor === Array) {
+                this.data = [] as any;
+                for (let item of data["data"])
+                    this.data!.push(GenericObjectViewModel.fromJS(item));
+            }
+            this.success = data["success"] !== undefined ? data["success"] : <any>null;
+            if (data["errors"] && data["errors"].constructor === Array) {
+                this.errors = [] as any;
+                for (let item of data["errors"])
+                    this.errors!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): ApiResultOfIEnumerableOfGenericObjectViewModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new ApiResultOfIEnumerableOfGenericObjectViewModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        if (this.data && this.data.constructor === Array) {
+            data["data"] = [];
+            for (let item of this.data)
+                data["data"].push(item.toJSON());
+        }
+        data["success"] = this.success !== undefined ? this.success : <any>null;
+        if (this.errors && this.errors.constructor === Array) {
+            data["errors"] = [];
+            for (let item of this.errors)
+                data["errors"].push(item);
+        }
+        return data; 
+    }
+}
+
+export interface IApiResultOfIEnumerableOfGenericObjectViewModel {
+    data?: GenericObjectViewModel[] | null;
+    success?: boolean | null;
+    errors?: string[] | null;
+}
+
+export class GenericObjectViewModel implements IGenericObjectViewModel {
+    id?: string | null;
+    createdOn?: Date | null;
+    type!: string;
+    valueType?: string | null;
+    value!: string;
+
+    constructor(data?: IGenericObjectViewModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(data?: any) {
+        if (data) {
+            this.id = data["id"] !== undefined ? data["id"] : <any>null;
+            this.createdOn = data["createdOn"] ? new Date(data["createdOn"].toString()) : <any>null;
+            this.type = data["type"] !== undefined ? data["type"] : <any>null;
+            this.valueType = data["valueType"] !== undefined ? data["valueType"] : <any>null;
+            this.value = data["value"] !== undefined ? data["value"] : <any>null;
+        }
+    }
+
+    static fromJS(data: any): GenericObjectViewModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new GenericObjectViewModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id !== undefined ? this.id : <any>null;
+        data["createdOn"] = this.createdOn ? this.createdOn.toISOString() : <any>null;
+        data["type"] = this.type !== undefined ? this.type : <any>null;
+        data["valueType"] = this.valueType !== undefined ? this.valueType : <any>null;
+        data["value"] = this.value !== undefined ? this.value : <any>null;
+        return data; 
+    }
+}
+
+export interface IGenericObjectViewModel {
+    id?: string | null;
+    createdOn?: Date | null;
+    type: string;
+    valueType?: string | null;
+    value: string;
+}
+
+export class ApiResultOfGenericObjectViewModel implements IApiResultOfGenericObjectViewModel {
+    data?: GenericObjectViewModel | null;
+    success?: boolean | null;
+    errors?: string[] | null;
+
+    constructor(data?: IApiResultOfGenericObjectViewModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(data?: any) {
+        if (data) {
+            this.data = data["data"] ? GenericObjectViewModel.fromJS(data["data"]) : <any>null;
+            this.success = data["success"] !== undefined ? data["success"] : <any>null;
+            if (data["errors"] && data["errors"].constructor === Array) {
+                this.errors = [] as any;
+                for (let item of data["errors"])
+                    this.errors!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): ApiResultOfGenericObjectViewModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new ApiResultOfGenericObjectViewModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["data"] = this.data ? this.data.toJSON() : <any>null;
+        data["success"] = this.success !== undefined ? this.success : <any>null;
+        if (this.errors && this.errors.constructor === Array) {
+            data["errors"] = [];
+            for (let item of this.errors)
+                data["errors"].push(item);
+        }
+        return data; 
+    }
+}
+
+export interface IApiResultOfGenericObjectViewModel {
+    data?: GenericObjectViewModel | null;
     success?: boolean | null;
     errors?: string[] | null;
 }
@@ -3082,6 +5149,118 @@ export interface IApiResultOfNewsPostViewModel {
     data?: NewsPostViewModel | null;
     success?: boolean | null;
     errors?: string[] | null;
+}
+
+export class ApiResultOfPagedResultDataOfIEnumerableOfCharacterViewModel implements IApiResultOfPagedResultDataOfIEnumerableOfCharacterViewModel {
+    data?: PagedResultDataOfIEnumerableOfCharacterViewModel | null;
+    success?: boolean | null;
+    errors?: string[] | null;
+
+    constructor(data?: IApiResultOfPagedResultDataOfIEnumerableOfCharacterViewModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(data?: any) {
+        if (data) {
+            this.data = data["data"] ? PagedResultDataOfIEnumerableOfCharacterViewModel.fromJS(data["data"]) : <any>null;
+            this.success = data["success"] !== undefined ? data["success"] : <any>null;
+            if (data["errors"] && data["errors"].constructor === Array) {
+                this.errors = [] as any;
+                for (let item of data["errors"])
+                    this.errors!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): ApiResultOfPagedResultDataOfIEnumerableOfCharacterViewModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new ApiResultOfPagedResultDataOfIEnumerableOfCharacterViewModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["data"] = this.data ? this.data.toJSON() : <any>null;
+        data["success"] = this.success !== undefined ? this.success : <any>null;
+        if (this.errors && this.errors.constructor === Array) {
+            data["errors"] = [];
+            for (let item of this.errors)
+                data["errors"].push(item);
+        }
+        return data; 
+    }
+}
+
+export interface IApiResultOfPagedResultDataOfIEnumerableOfCharacterViewModel {
+    data?: PagedResultDataOfIEnumerableOfCharacterViewModel | null;
+    success?: boolean | null;
+    errors?: string[] | null;
+}
+
+export class PagedResultDataOfIEnumerableOfCharacterViewModel implements IPagedResultDataOfIEnumerableOfCharacterViewModel {
+    content?: CharacterViewModel[] | null;
+    recordCount?: number | null;
+    currentIndex?: number | null;
+    currentCountPerPage?: number | null;
+    pageCount?: number | null;
+
+    constructor(data?: IPagedResultDataOfIEnumerableOfCharacterViewModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(data?: any) {
+        if (data) {
+            if (data["content"] && data["content"].constructor === Array) {
+                this.content = [] as any;
+                for (let item of data["content"])
+                    this.content!.push(CharacterViewModel.fromJS(item));
+            }
+            this.recordCount = data["recordCount"] !== undefined ? data["recordCount"] : <any>null;
+            this.currentIndex = data["currentIndex"] !== undefined ? data["currentIndex"] : <any>null;
+            this.currentCountPerPage = data["currentCountPerPage"] !== undefined ? data["currentCountPerPage"] : <any>null;
+            this.pageCount = data["pageCount"] !== undefined ? data["pageCount"] : <any>null;
+        }
+    }
+
+    static fromJS(data: any): PagedResultDataOfIEnumerableOfCharacterViewModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new PagedResultDataOfIEnumerableOfCharacterViewModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        if (this.content && this.content.constructor === Array) {
+            data["content"] = [];
+            for (let item of this.content)
+                data["content"].push(item.toJSON());
+        }
+        data["recordCount"] = this.recordCount !== undefined ? this.recordCount : <any>null;
+        data["currentIndex"] = this.currentIndex !== undefined ? this.currentIndex : <any>null;
+        data["currentCountPerPage"] = this.currentCountPerPage !== undefined ? this.currentCountPerPage : <any>null;
+        data["pageCount"] = this.pageCount !== undefined ? this.pageCount : <any>null;
+        return data; 
+    }
+}
+
+export interface IPagedResultDataOfIEnumerableOfCharacterViewModel {
+    content?: CharacterViewModel[] | null;
+    recordCount?: number | null;
+    currentIndex?: number | null;
+    currentCountPerPage?: number | null;
+    pageCount?: number | null;
 }
 
 export class ApiResultOfStringOf implements IApiResultOfStringOf {
@@ -3402,6 +5581,654 @@ export interface IApiResultOfServiceStatusViewModel {
     data?: ServiceStatusViewModel | null;
     success?: boolean | null;
     errors?: string[] | null;
+}
+
+export class ApiResultOfIEnumerableOfStatisticsEntryViewModel implements IApiResultOfIEnumerableOfStatisticsEntryViewModel {
+    data?: StatisticsEntryViewModel[] | null;
+    success?: boolean | null;
+    errors?: string[] | null;
+
+    constructor(data?: IApiResultOfIEnumerableOfStatisticsEntryViewModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(data?: any) {
+        if (data) {
+            if (data["data"] && data["data"].constructor === Array) {
+                this.data = [] as any;
+                for (let item of data["data"])
+                    this.data!.push(StatisticsEntryViewModel.fromJS(item));
+            }
+            this.success = data["success"] !== undefined ? data["success"] : <any>null;
+            if (data["errors"] && data["errors"].constructor === Array) {
+                this.errors = [] as any;
+                for (let item of data["errors"])
+                    this.errors!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): ApiResultOfIEnumerableOfStatisticsEntryViewModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new ApiResultOfIEnumerableOfStatisticsEntryViewModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        if (this.data && this.data.constructor === Array) {
+            data["data"] = [];
+            for (let item of this.data)
+                data["data"].push(item.toJSON());
+        }
+        data["success"] = this.success !== undefined ? this.success : <any>null;
+        if (this.errors && this.errors.constructor === Array) {
+            data["errors"] = [];
+            for (let item of this.errors)
+                data["errors"].push(item);
+        }
+        return data; 
+    }
+}
+
+export interface IApiResultOfIEnumerableOfStatisticsEntryViewModel {
+    data?: StatisticsEntryViewModel[] | null;
+    success?: boolean | null;
+    errors?: string[] | null;
+}
+
+export class StatisticsEntryViewModel implements IStatisticsEntryViewModel {
+    id?: string | null;
+    start?: Date | null;
+    end?: Date | null;
+    statGroup?: string | null;
+    statName?: string | null;
+    valueType?: string | null;
+    value?: string | null;
+
+    constructor(data?: IStatisticsEntryViewModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(data?: any) {
+        if (data) {
+            this.id = data["id"] !== undefined ? data["id"] : <any>null;
+            this.start = data["start"] ? new Date(data["start"].toString()) : <any>null;
+            this.end = data["end"] ? new Date(data["end"].toString()) : <any>null;
+            this.statGroup = data["statGroup"] !== undefined ? data["statGroup"] : <any>null;
+            this.statName = data["statName"] !== undefined ? data["statName"] : <any>null;
+            this.valueType = data["valueType"] !== undefined ? data["valueType"] : <any>null;
+            this.value = data["value"] !== undefined ? data["value"] : <any>null;
+        }
+    }
+
+    static fromJS(data: any): StatisticsEntryViewModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new StatisticsEntryViewModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id !== undefined ? this.id : <any>null;
+        data["start"] = this.start ? this.start.toISOString() : <any>null;
+        data["end"] = this.end ? this.end.toISOString() : <any>null;
+        data["statGroup"] = this.statGroup !== undefined ? this.statGroup : <any>null;
+        data["statName"] = this.statName !== undefined ? this.statName : <any>null;
+        data["valueType"] = this.valueType !== undefined ? this.valueType : <any>null;
+        data["value"] = this.value !== undefined ? this.value : <any>null;
+        return data; 
+    }
+}
+
+export interface IStatisticsEntryViewModel {
+    id?: string | null;
+    start?: Date | null;
+    end?: Date | null;
+    statGroup?: string | null;
+    statName?: string | null;
+    valueType?: string | null;
+    value?: string | null;
+}
+
+export class ApiResultOfIEnumerableOfTransactionViewModel implements IApiResultOfIEnumerableOfTransactionViewModel {
+    data?: TransactionViewModel[] | null;
+    success?: boolean | null;
+    errors?: string[] | null;
+
+    constructor(data?: IApiResultOfIEnumerableOfTransactionViewModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(data?: any) {
+        if (data) {
+            if (data["data"] && data["data"].constructor === Array) {
+                this.data = [] as any;
+                for (let item of data["data"])
+                    this.data!.push(TransactionViewModel.fromJS(item));
+            }
+            this.success = data["success"] !== undefined ? data["success"] : <any>null;
+            if (data["errors"] && data["errors"].constructor === Array) {
+                this.errors = [] as any;
+                for (let item of data["errors"])
+                    this.errors!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): ApiResultOfIEnumerableOfTransactionViewModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new ApiResultOfIEnumerableOfTransactionViewModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        if (this.data && this.data.constructor === Array) {
+            data["data"] = [];
+            for (let item of this.data)
+                data["data"].push(item.toJSON());
+        }
+        data["success"] = this.success !== undefined ? this.success : <any>null;
+        if (this.errors && this.errors.constructor === Array) {
+            data["errors"] = [];
+            for (let item of this.errors)
+                data["errors"].push(item);
+        }
+        return data; 
+    }
+}
+
+export interface IApiResultOfIEnumerableOfTransactionViewModel {
+    data?: TransactionViewModel[] | null;
+    success?: boolean | null;
+    errors?: string[] | null;
+}
+
+export class TransactionViewModel implements ITransactionViewModel {
+    id?: string | null;
+    amount?: number | null;
+    date?: Date | null;
+    reason?: string | null;
+    currency?: string | null;
+    target?: string | null;
+    targetInfo?: string | null;
+    status?: string | null;
+
+    constructor(data?: ITransactionViewModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(data?: any) {
+        if (data) {
+            this.id = data["id"] !== undefined ? data["id"] : <any>null;
+            this.amount = data["amount"] !== undefined ? data["amount"] : <any>null;
+            this.date = data["date"] ? new Date(data["date"].toString()) : <any>null;
+            this.reason = data["reason"] !== undefined ? data["reason"] : <any>null;
+            this.currency = data["currency"] !== undefined ? data["currency"] : <any>null;
+            this.target = data["target"] !== undefined ? data["target"] : <any>null;
+            this.targetInfo = data["targetInfo"] !== undefined ? data["targetInfo"] : <any>null;
+            this.status = data["status"] !== undefined ? data["status"] : <any>null;
+        }
+    }
+
+    static fromJS(data: any): TransactionViewModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new TransactionViewModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id !== undefined ? this.id : <any>null;
+        data["amount"] = this.amount !== undefined ? this.amount : <any>null;
+        data["date"] = this.date ? this.date.toISOString() : <any>null;
+        data["reason"] = this.reason !== undefined ? this.reason : <any>null;
+        data["currency"] = this.currency !== undefined ? this.currency : <any>null;
+        data["target"] = this.target !== undefined ? this.target : <any>null;
+        data["targetInfo"] = this.targetInfo !== undefined ? this.targetInfo : <any>null;
+        data["status"] = this.status !== undefined ? this.status : <any>null;
+        return data; 
+    }
+}
+
+export interface ITransactionViewModel {
+    id?: string | null;
+    amount?: number | null;
+    date?: Date | null;
+    reason?: string | null;
+    currency?: string | null;
+    target?: string | null;
+    targetInfo?: string | null;
+    status?: string | null;
+}
+
+export class ApiResultOfTransactionViewModel implements IApiResultOfTransactionViewModel {
+    data?: TransactionViewModel | null;
+    success?: boolean | null;
+    errors?: string[] | null;
+
+    constructor(data?: IApiResultOfTransactionViewModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(data?: any) {
+        if (data) {
+            this.data = data["data"] ? TransactionViewModel.fromJS(data["data"]) : <any>null;
+            this.success = data["success"] !== undefined ? data["success"] : <any>null;
+            if (data["errors"] && data["errors"].constructor === Array) {
+                this.errors = [] as any;
+                for (let item of data["errors"])
+                    this.errors!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): ApiResultOfTransactionViewModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new ApiResultOfTransactionViewModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["data"] = this.data ? this.data.toJSON() : <any>null;
+        data["success"] = this.success !== undefined ? this.success : <any>null;
+        if (this.errors && this.errors.constructor === Array) {
+            data["errors"] = [];
+            for (let item of this.errors)
+                data["errors"].push(item);
+        }
+        return data; 
+    }
+}
+
+export interface IApiResultOfTransactionViewModel {
+    data?: TransactionViewModel | null;
+    success?: boolean | null;
+    errors?: string[] | null;
+}
+
+export class WithdrawCurrencyViewModel implements IWithdrawCurrencyViewModel {
+    character!: string;
+    currency!: string;
+    amount?: number | null;
+
+    constructor(data?: IWithdrawCurrencyViewModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(data?: any) {
+        if (data) {
+            this.character = data["character"] !== undefined ? data["character"] : <any>null;
+            this.currency = data["currency"] !== undefined ? data["currency"] : <any>null;
+            this.amount = data["amount"] !== undefined ? data["amount"] : <any>null;
+        }
+    }
+
+    static fromJS(data: any): WithdrawCurrencyViewModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new WithdrawCurrencyViewModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["character"] = this.character !== undefined ? this.character : <any>null;
+        data["currency"] = this.currency !== undefined ? this.currency : <any>null;
+        data["amount"] = this.amount !== undefined ? this.amount : <any>null;
+        return data; 
+    }
+}
+
+export interface IWithdrawCurrencyViewModel {
+    character: string;
+    currency: string;
+    amount?: number | null;
+}
+
+export class ApiResultOfWithdrawCurrencyViewModel implements IApiResultOfWithdrawCurrencyViewModel {
+    data?: WithdrawCurrencyViewModel | null;
+    success?: boolean | null;
+    errors?: string[] | null;
+
+    constructor(data?: IApiResultOfWithdrawCurrencyViewModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(data?: any) {
+        if (data) {
+            this.data = data["data"] ? WithdrawCurrencyViewModel.fromJS(data["data"]) : <any>null;
+            this.success = data["success"] !== undefined ? data["success"] : <any>null;
+            if (data["errors"] && data["errors"].constructor === Array) {
+                this.errors = [] as any;
+                for (let item of data["errors"])
+                    this.errors!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): ApiResultOfWithdrawCurrencyViewModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new ApiResultOfWithdrawCurrencyViewModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["data"] = this.data ? this.data.toJSON() : <any>null;
+        data["success"] = this.success !== undefined ? this.success : <any>null;
+        if (this.errors && this.errors.constructor === Array) {
+            data["errors"] = [];
+            for (let item of this.errors)
+                data["errors"].push(item);
+        }
+        return data; 
+    }
+}
+
+export interface IApiResultOfWithdrawCurrencyViewModel {
+    data?: WithdrawCurrencyViewModel | null;
+    success?: boolean | null;
+    errors?: string[] | null;
+}
+
+export class ApiResultOfPagedResultDataOfIEnumerableOfTransactionViewModel implements IApiResultOfPagedResultDataOfIEnumerableOfTransactionViewModel {
+    data?: PagedResultDataOfIEnumerableOfTransactionViewModel | null;
+    success?: boolean | null;
+    errors?: string[] | null;
+
+    constructor(data?: IApiResultOfPagedResultDataOfIEnumerableOfTransactionViewModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(data?: any) {
+        if (data) {
+            this.data = data["data"] ? PagedResultDataOfIEnumerableOfTransactionViewModel.fromJS(data["data"]) : <any>null;
+            this.success = data["success"] !== undefined ? data["success"] : <any>null;
+            if (data["errors"] && data["errors"].constructor === Array) {
+                this.errors = [] as any;
+                for (let item of data["errors"])
+                    this.errors!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): ApiResultOfPagedResultDataOfIEnumerableOfTransactionViewModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new ApiResultOfPagedResultDataOfIEnumerableOfTransactionViewModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["data"] = this.data ? this.data.toJSON() : <any>null;
+        data["success"] = this.success !== undefined ? this.success : <any>null;
+        if (this.errors && this.errors.constructor === Array) {
+            data["errors"] = [];
+            for (let item of this.errors)
+                data["errors"].push(item);
+        }
+        return data; 
+    }
+}
+
+export interface IApiResultOfPagedResultDataOfIEnumerableOfTransactionViewModel {
+    data?: PagedResultDataOfIEnumerableOfTransactionViewModel | null;
+    success?: boolean | null;
+    errors?: string[] | null;
+}
+
+export class PagedResultDataOfIEnumerableOfTransactionViewModel implements IPagedResultDataOfIEnumerableOfTransactionViewModel {
+    content?: TransactionViewModel[] | null;
+    recordCount?: number | null;
+    currentIndex?: number | null;
+    currentCountPerPage?: number | null;
+    pageCount?: number | null;
+
+    constructor(data?: IPagedResultDataOfIEnumerableOfTransactionViewModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(data?: any) {
+        if (data) {
+            if (data["content"] && data["content"].constructor === Array) {
+                this.content = [] as any;
+                for (let item of data["content"])
+                    this.content!.push(TransactionViewModel.fromJS(item));
+            }
+            this.recordCount = data["recordCount"] !== undefined ? data["recordCount"] : <any>null;
+            this.currentIndex = data["currentIndex"] !== undefined ? data["currentIndex"] : <any>null;
+            this.currentCountPerPage = data["currentCountPerPage"] !== undefined ? data["currentCountPerPage"] : <any>null;
+            this.pageCount = data["pageCount"] !== undefined ? data["pageCount"] : <any>null;
+        }
+    }
+
+    static fromJS(data: any): PagedResultDataOfIEnumerableOfTransactionViewModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new PagedResultDataOfIEnumerableOfTransactionViewModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        if (this.content && this.content.constructor === Array) {
+            data["content"] = [];
+            for (let item of this.content)
+                data["content"].push(item.toJSON());
+        }
+        data["recordCount"] = this.recordCount !== undefined ? this.recordCount : <any>null;
+        data["currentIndex"] = this.currentIndex !== undefined ? this.currentIndex : <any>null;
+        data["currentCountPerPage"] = this.currentCountPerPage !== undefined ? this.currentCountPerPage : <any>null;
+        data["pageCount"] = this.pageCount !== undefined ? this.pageCount : <any>null;
+        return data; 
+    }
+}
+
+export interface IPagedResultDataOfIEnumerableOfTransactionViewModel {
+    content?: TransactionViewModel[] | null;
+    recordCount?: number | null;
+    currentIndex?: number | null;
+    currentCountPerPage?: number | null;
+    pageCount?: number | null;
+}
+
+export class ApiResultOfInt32 implements IApiResultOfInt32 {
+    data?: number | null;
+    success?: boolean | null;
+    errors?: string[] | null;
+
+    constructor(data?: IApiResultOfInt32) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(data?: any) {
+        if (data) {
+            this.data = data["data"] !== undefined ? data["data"] : <any>null;
+            this.success = data["success"] !== undefined ? data["success"] : <any>null;
+            if (data["errors"] && data["errors"].constructor === Array) {
+                this.errors = [] as any;
+                for (let item of data["errors"])
+                    this.errors!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): ApiResultOfInt32 {
+        data = typeof data === 'object' ? data : {};
+        let result = new ApiResultOfInt32();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["data"] = this.data !== undefined ? this.data : <any>null;
+        data["success"] = this.success !== undefined ? this.success : <any>null;
+        if (this.errors && this.errors.constructor === Array) {
+            data["errors"] = [];
+            for (let item of this.errors)
+                data["errors"].push(item);
+        }
+        return data; 
+    }
+}
+
+export interface IApiResultOfInt32 {
+    data?: number | null;
+    success?: boolean | null;
+    errors?: string[] | null;
+}
+
+export class ApiResultOfVoteState implements IApiResultOfVoteState {
+    data?: VoteState | null;
+    success?: boolean | null;
+    errors?: string[] | null;
+
+    constructor(data?: IApiResultOfVoteState) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(data?: any) {
+        if (data) {
+            this.data = data["data"] ? VoteState.fromJS(data["data"]) : <any>null;
+            this.success = data["success"] !== undefined ? data["success"] : <any>null;
+            if (data["errors"] && data["errors"].constructor === Array) {
+                this.errors = [] as any;
+                for (let item of data["errors"])
+                    this.errors!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): ApiResultOfVoteState {
+        data = typeof data === 'object' ? data : {};
+        let result = new ApiResultOfVoteState();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["data"] = this.data ? this.data.toJSON() : <any>null;
+        data["success"] = this.success !== undefined ? this.success : <any>null;
+        if (this.errors && this.errors.constructor === Array) {
+            data["errors"] = [];
+            for (let item of this.errors)
+                data["errors"].push(item);
+        }
+        return data; 
+    }
+}
+
+export interface IApiResultOfVoteState {
+    data?: VoteState | null;
+    success?: boolean | null;
+    errors?: string[] | null;
+}
+
+export class VoteState implements IVoteState {
+    state?: string | null;
+    timeSpan?: string | null;
+
+    constructor(data?: IVoteState) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(data?: any) {
+        if (data) {
+            this.state = data["state"] !== undefined ? data["state"] : <any>null;
+            this.timeSpan = data["timeSpan"] !== undefined ? data["timeSpan"] : <any>null;
+        }
+    }
+
+    static fromJS(data: any): VoteState {
+        data = typeof data === 'object' ? data : {};
+        let result = new VoteState();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["state"] = this.state !== undefined ? this.state : <any>null;
+        data["timeSpan"] = this.timeSpan !== undefined ? this.timeSpan : <any>null;
+        return data; 
+    }
+}
+
+export interface IVoteState {
+    state?: string | null;
+    timeSpan?: string | null;
 }
 
 export class SwaggerException extends Error {

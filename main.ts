@@ -7,6 +7,7 @@ import * as fs from 'fs';
 import * as zlib from 'zlib';
 import * as readline from 'readline'
 import * as child_process from 'child_process'
+import { autoUpdater } from "electron-updater"
 
 let win, serve;
 const args = process.argv.slice(1);
@@ -508,10 +509,15 @@ try {
   // initialization and is ready to create browser windows.
   // Some APIs can only be used after this event occurs.
   app.on('ready', async () => {
+
     setTimeout(() => {
         createWindow();
       });
     });
+
+  app.on('ready', function()  {
+    autoUpdater.checkForUpdatesAndNotify();
+  });
 
   // Quit when all windows are closed.
   app.on('window-all-closed', () => {
