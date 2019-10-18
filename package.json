@@ -1,6 +1,6 @@
 {
   "name": "Euphresia-Launcher",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Euphresia Launcher",
   "author": {
     "name": "Euphresia Flyff Launcher"
@@ -33,7 +33,7 @@
     "electron:serve": "wait-on http-get://localhost:4200/ && npm run electron:serve-tsc && electron . --serve",
     "electron:local": "npm run build:prod && electron .",
     "electron:linux": "npm run build:prod && electron-builder build --linux",
-    "electron:windows": "npm run build:prod -- --base-href ./dist && electron-builder build --windows",
+    "electron:windows": "npm run build:prod -- --base-href ./dist && electron-builder build --publish always --windows",
     "electron:mac": "npm run build:prod && electron-builder build --mac",
     "test": "npm run postinstall:web && ng test",
     "e2e": "npm run build:prod && mocha --timeout 300000 --require ts-node/register e2e/**/*.spec.ts",
@@ -92,5 +92,17 @@
     "ngx-smart-modal": "^7.1.1",
     "request": "^2.88.0",
     "zlib": "^1.0.5"
+  },
+  "build":
+  {
+    "win":
+    {
+      "publish":
+      {
+        "provider": "generic",
+        "url": "https://patch.euphresia-flyff.com/launcher/",
+        "publishAutoUpdate": true
+      }
+    }
   }
 }

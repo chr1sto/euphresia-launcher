@@ -43,7 +43,10 @@
     "perMachine": true,
     "allowElevation": true,
     "allowToChangeInstallationDirectory": true,
-    "include": "build/installer.nsh"
+    "include": "build/installer.nsh",
+    "provider": "generic",
+    "url": "https://patch.euphresia-flyff.com/launcher/",
+    "publishAutoUpdate": true
   },
   "extraFiles": [
     "./dependencies/VC_redist.x86.exe"
