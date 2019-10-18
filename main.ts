@@ -8,10 +8,15 @@ import * as zlib from 'zlib';
 import * as readline from 'readline'
 import * as child_process from 'child_process'
 import { autoUpdater } from "electron-updater"
+import * as electronLog from 'electron-log'
+
 
 let win, serve;
 const args = process.argv.slice(1);
 serve = args.some(val => val === '--serve');
+
+electronLog.transports.file.level = "debug";
+autoUpdater.logger = electronLog;
 
 let configEntries : any = null;
 
@@ -512,11 +517,13 @@ try {
 
     setTimeout(() => {
         createWindow();
+        console.log(app.getVersion());
       });
     });
 
   app.on('ready', function()  {
     autoUpdater.checkForUpdatesAndNotify();
+    console.log(autoUpdater.getFeedURL());
   });
 
   // Quit when all windows are closed.

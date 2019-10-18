@@ -44,11 +44,20 @@
     "allowElevation": true,
     "allowToChangeInstallationDirectory": true,
     "include": "build/installer.nsh",
-    "provider": "generic",
-    "url": "https://patch.euphresia-flyff.com/launcher/",
-    "publishAutoUpdate": true
+    "installerIcon":"dist/favicon.ico",
+    "uninstallerIcon":"dist/favicon.ico",
+    "publish": {
+      "provider": "generic",
+      "url": "https://patch.euphresia-flyff.com/launcher/",
+      "publishAutoUpdate": true
+    }
   },
   "extraFiles": [
     "./dependencies/VC_redist.x86.exe"
-  ]
+  ],
+  "publish": {
+    "provider": "generic",
+    "url": "https://patch.euphresia-flyff.com/launcher/",
+    "publishAutoUpdate": true
+  }
 }
