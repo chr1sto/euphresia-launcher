@@ -2,7 +2,9 @@
     <router-outlet></router-outlet>
 </div>
 <div class="progress-container">
-    <p>{{statusMessage}}</p>
+    <p class="left-status">{{statusMessage}}</p>
+    <p class="right-status">{{progressFileSizeFormatted}} / {{totalFileSizeFormatted}}</p>
+    <p class="speed">{{speedFormatted}}/s</p>
     <img class="progress-right" src="./assets/loadbar_bg.png">
     <img class="progress-right" src="./assets/loadbar_red.png" id="part-right">
     <img class="progress-right" src="./assets/loadbar_frame.png">

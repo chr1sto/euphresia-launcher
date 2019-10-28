@@ -26,6 +26,14 @@ export class HomeComponent implements OnInit {
   checkedForUpdates: boolean = false;
   upToDate: boolean = false;
 
+  totalFileSize : number = 0;
+  progressFileSize : number = 0;
+  speed : number = 0;
+
+  totalFileSizeFormatted : string = "0 B";
+  progressFileSizeFormatted : string = "0 B";
+  speedFormatted : string = "0 B";
+
   //
   runningClients : any[] = [];
 
@@ -92,6 +100,27 @@ export class HomeComponent implements OnInit {
       this.runningClients = data;
     })
 
+    this.electronService.ipcRenderer.on('total-file-size',(event,data) => {
+      this.totalFileSize = data;
+      this.totalFileSizeFormatted = this.formatBytes(this.totalFileSize);
+      this.ref.detectChanges();
+    })
+
+    //'progress-size',{progress: fileSizeProgress,speed: speed}
+    this.electronService.ipcRenderer.on('progress-size',(event,data) => {
+      
+      if(data && data.speed != null && data.progress != null) 
+      {
+        this.progressFileSize = data.progress;
+        this.speed = data.speed;
+        var pfsf = this.formatBytes(this.progressFileSize);
+        this.progressFileSizeFormatted = pfsf;
+        var sf = this.formatBytes(this.speed);
+        if(sf) this.speedFormatted = sf;
+        this.ref.detectChanges();
+      }
+    })
+
     this.patch();
     this.ref.detectChanges();
 
@@ -100,6 +129,19 @@ export class HomeComponent implements OnInit {
       this.patch();
     },300000);
     
+  }
+
+
+  formatBytes(bytes, decimals = 2) {
+    if (bytes === 0) return '0 Bytes';
+
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
   }
 
   updateBarWidth()

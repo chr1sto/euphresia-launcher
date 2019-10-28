@@ -29,13 +29,26 @@
     margin-right: 25px;
     height: 135px;
 
-    p{
+    p
+    {
         position: absolute;
-        left:35px;
-        top:10px;
         color: white;
-    }
+        &.left-status{
+            left:35px;
+            top:15px;
+        }
 
+        &.right-status{
+            right: 35px;
+            top: 15px;
+        }
+
+        &.speed
+        {
+            right: 35px;
+            top: 78px;
+        }
+    }
     .button-start-color
     {
         position: absolute;

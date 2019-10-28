@@ -9,6 +9,7 @@ import * as readline from 'readline'
 import * as child_process from 'child_process'
 import { autoUpdater } from "electron-updater"
 import * as electronLog from 'electron-log'
+import * as progress from 'request-progress'
 
 
 let win, serve;
@@ -26,6 +27,8 @@ const tempExecPath = path.join(path.resolve(localClientPath),'binary\\Euphresia.
 const appdata = path.join(process.env.LOCALAPPDATA,'Euphresia\\Flyff\\');
 const iniPath = path.join(appdata,'Euphresia.ini');
 const patchConfigPath = path.join(appdata,'EuphresiaLauncher.ini');
+
+var progressReportLast = new Date();
 
 var selectedAccountId = null;
 var token : string = null;
@@ -90,7 +93,8 @@ function createWindow() {
         processPatchList(appdata + 'list.txt',() => {
           if(fileList.length > 0)
           {
-            event.sender.send('patch-available','New Patch avalaible!')
+            event.sender.send('patch-available','New Patch avalaible!');
+            event.sender.send('total-file-size',totalFileSize);
           }
           else{
             event.sender.send('up-to-date','Up to date!');
@@ -98,10 +102,12 @@ function createWindow() {
         },
         (error) => console.log('err' + error))
       },
-      () => console.log('error'))
+      () => console.log('error'),
+      (progress,speed) => true)
   });
 
   ipcMain.on('start-download-process',(event, arg) => {
+    fileSizeProgress = 0;
     var currentFile : number = 0;
     event.sender.send('status-update','Retrieving Patchlist...');
     downloadGzipFileTo(
@@ -117,7 +123,8 @@ function createWindow() {
           }
           else
           {
-            event.sender.send('file-count',fileList.length)
+            event.sender.send('file-count',fileList.length);
+            event.sender.send('total-file-size',totalFileSize);
             event.sender.send('status-update','Applying Patches...');
             downloadFiles(
               (i) => event.sender.send('update-progress',++currentFile),
@@ -127,11 +134,23 @@ function createWindow() {
                 if(currentFile == fileList.length || currentFile % 10)
                   event.sender.send('update-progress',currentFile);
                 event.sender.send('status-update','ERROR');
+              },
+              (progress,speed) => {
+                fileSizeProgress += progress;
+                if(true || (new Date().getSeconds() - progressReportLast.getSeconds()) > 1)
+                {
+                  event.sender.send('progress-size',{progress: fileSizeProgress,speed: speed});
+                  progressReportLast = new Date();
+                  console.log("PROGRESS: ",progress);
+                }                
               })
             }
         },(error) => console.log(error))
       },
-      () => console.log('error'));
+      () => console.log('error'),
+      (progress,speed) => {
+        true;
+      });
   })
 
   ipcMain.on('start-game',(event,arg) => {
@@ -375,12 +394,13 @@ const writeIni = () => {
   });
 }
 
-const downloadFiles = (updateFileCount,onSuccess, onError) =>
+const downloadFiles = (updateFileCount,onSuccess, onError, onProgress) =>
 {
+  console.log(fileList);
   let index = 0;
   try
   {
-    dlSingle(index,updateFileCount,onSuccess);
+    dlSingle(index,updateFileCount,onSuccess,onProgress);
   }
   catch
   {
@@ -390,7 +410,7 @@ const downloadFiles = (updateFileCount,onSuccess, onError) =>
   onSuccess();
 }
 
-const dlSingle = (index,updateFileCount,onSuccess) =>
+const dlSingle = (index,updateFileCount,onSuccess,onProgress) =>
 {
   let file = fileList[index];
   let url1 = serverRoot + file.replace('\\','/') + '.gz';
@@ -399,7 +419,7 @@ const dlSingle = (index,updateFileCount,onSuccess) =>
   { 
     updateFileCount(1)
     if(index+1 < fileList.length && !error)
-      dlSingle(index+1,updateFileCount,onSuccess);
+      dlSingle(index+1,updateFileCount,onSuccess,onProgress);
     else
       onSuccess();
   },
@@ -408,10 +428,14 @@ const dlSingle = (index,updateFileCount,onSuccess) =>
     notifyError(err)
     updateFileCount();
     error = true;
-  });
+  },
+  onProgress);
 }
 
+var totalFileSize = 0;
+
 const processPatchList = (path,onFinished,onError) => {
+  totalFileSize = 0;
   var rl = readline.createInterface({
     input : fs.createReadStream(path),
     output: process.stdout,
@@ -463,6 +487,7 @@ const processPatchList = (path,onFinished,onError) => {
 
       if(fileNotFound || exSize != size || exDate < date )
       {
+        totalFileSize += size;
         //enqueue Files
         fileList.push(folder + '\\' + file);
       }
@@ -474,43 +499,51 @@ const processPatchList = (path,onFinished,onError) => {
   })
 }
 
-const downloadGzipFileTo = (path1,saveAs,onSuccess,onError) =>
+var fileSizeProgress : number = 0;
+
+const downloadGzipFileTo = (path1,saveAs,onSuccess,onError,onProgress) =>
 {
-  if(!fs.existsSync(path.dirname(saveAs)))
-  {
-    fs.mkdirSync(path.dirname(saveAs));
-  }
-
-  const ws = fs.createWriteStream(saveAs)
-
-  ws.on('error',() => {
-    return onError('Unable to save file ' + saveAs + '.\n Make sure that your launcher is in the same Directory as your Game Client!');
-  })
-
-  const req = request.get(path1);
-
-  req.on('error',() => {
-    return onError('Unable to retrieve '+path1+'.\n There is either a problem with your connection or the service is currently unavailable.\nTry restarting the Launcher.\nIf the error persists, contact the Euphresia Staff.');
-  })
-
-  const unz = zlib.createGunzip();
-
-  var headers = {
-      'Accept-Encoding': 'gzip'
-  };
+  console.log(path1,saveAs);
   try
   {
-    request({url: path1, 'headers': headers, method: 'GET'})
-    .pipe(unz) // unzip
-    .pipe(ws);
+    if(!fs.existsSync(path.dirname(saveAs)))
+    {
+      fs.mkdirSync(path.dirname(saveAs));
+    }
+  
+    const ws = fs.createWriteStream(saveAs)
+  
+    ws.on('error',() => {
+      return onError('Unable to save file ' + saveAs + '.\n Make sure that your launcher is in the same Directory as your Game Client!');
+    })
 
     ws.on('finish',() => onSuccess());
-    unz.on('error',(err) => onError(err));
+  
+    const zunlib = zlib.createGunzip();
+
+    var headers = {
+      'Accept-Encoding': 'gzip'
+    };
+
+    progress(request(path1,{
+      headers: headers,
+      method: 'GET'
+    })).on('progress', (state) => {
+      onProgress(state.size.transferred,state.speed);
+    }).on('error', (error) => {
+      return onError('Unable to retrieve file from' + path1 + '.\n\n' + error);
+    }).on('end', () => {
+      console.log(path1);
+    })
+    .pipe(zunlib)
+    .pipe(ws);
+  
   }
-  catch
+  catch(ex)
   {
-    onError();
-  }  
+    onError(ex);
+  }
+
 }
 
 try {
