@@ -26,7 +26,7 @@ export class SelectAccountComponent implements OnInit, OnDestroy {
     public el : ElementRef,
     public electronService : ElectronService) { 
       this.selectAccService.updateGameAccounts();
-      this.element = el;
+      this.element = el.nativeElement;
     }
 
   ngOnInit() {
