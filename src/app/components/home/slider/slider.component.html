@@ -1,0 +1,19 @@
+<div class="inner">
+    <slideshow #slideshow [height]="'288px'"
+    [minHeight]="'288px'"
+    [autoPlay]="true"
+    [showArrows]="false"
+    [imageUrls]="sliderUrls"
+    [autoPlayWaitForLazyLoad]="false"
+    [autoPlayInterval]="10000"
+    (onIndexChanged)="indexChanged($event)">
+    </slideshow>
+</div>
+<div class="border">
+
+</div>
+<ul class="slider-idx">
+    <li *ngFor="let item of sliderUrls; let i = index" [ngClass]="{'is-active': sliderIndex == sliderUrls.length - i - 1}" (click)="changeIndex(i)">
+        
+    </li>
+</ul>

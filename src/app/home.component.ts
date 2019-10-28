@@ -145,7 +145,7 @@ export class HomeComponent implements OnInit {
 
   startGame()
   {
-    this.electronService.ipcRenderer.send('start-game',this.selectAccService.selectedAccountId);
+    this.selectAccService.open()    
   }
 
   getStartButtonClass()

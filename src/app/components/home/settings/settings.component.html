@@ -1,0 +1,117 @@
+<h1 class="title">Settings</h1>
+
+<div class="options-inner">
+    <table>
+        <tr>
+            <td class="first">
+                Resolution
+            </td>
+            <td>
+                <div class="select-wrapper">
+                    <select [(ngModel)]="configService.resolution" id="resolution" (change)="configChanged()">
+                        <option value="800x600">800x600</option>
+                        <option value="1024x768">1024x768</option>
+                        <option value="1280x1024">1280x1024</option>
+                        <option value="1280x720">1280x720 (wide)</option>
+                        <option value="1280x768">1280x768 (wide)</option>
+                        <option value="1280x800">1280x800 (wide)</option>
+                        <option value="1600x900">1600x900</option>
+                        <option value="1600x1200">1600x1200</option>
+                        <option value="1360x768">1360x768 (wide)</option>
+                        <option value="1400x1050">1400x1050</option>
+                        <option value="1440x900">1440x900 (wide)</option>
+                        <option value="1650x1050">1650x1050 (wide)</option>
+                        <option value="1920x1200">1920x1200 (wide)</option>
+                        <option value="1920x1080">1920x1080</option>
+                        <option value="2560x1080">2560x1080 (ultra wide)</option>
+                        <option value="2560x1440">2560x1440 (wide)</option>
+                        <option value="3440x1440">3440x1440 (ultra wide)</option>
+                        <option value="3840x2160">3840x2160 (4k)</option>
+                    </select>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="first">
+                Fullscreen
+            </td>
+            <td>
+                <label class="container">
+                    <input [(ngModel)]="configService.fullscreen" type="checkbox" id="fullscreen" (change)="configChanged()">
+                    <span class="checkmark"></span>
+                </label>                
+            </td>
+        </tr>
+        <tr>
+            <td class="first">
+                Interface
+            </td>
+            <td>
+                <div class="select-wrapper">
+                    <select [(ngModel)]="configService.interface" id="interface-version" (change)="configChanged()">
+                        <option value="1">Classic</option>
+                        <option value="0">V19</option>
+                    </select>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="first">
+                Taskbar
+            </td>
+            <td>
+                <div class="select-wrapper">
+                    <select [(ngModel)]="configService.ntask" id="taskbar" (change)="configChanged()">
+                        <option value="1">Classic</option>
+                        <option value="0">V19</option>
+                    </select>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="first">
+                Increased FOV
+            </td>
+            <td>
+                <label class="container">
+                    <input [(ngModel)]="configService.fovInCrase" type="checkbox" id="fullscreen" (change)="configChanged()">
+                    <span class="checkmark"></span>
+                </label>
+            </td>
+        </tr>
+        <tr>
+            <td class="first">
+                Anisotrophy
+            </td>
+            <td>
+                <div class="select-wrapper">
+                    <select [(ngModel)]="configService.anisotrophy" id="anisotrophy" (change)="configChanged()">
+                        <option value="0">0</option>
+                        <option value="1">1</option>
+                    </select>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="first">
+                Multisample
+            </td>
+            <td>
+                <label class="container">
+                    <input [(ngModel)]="configService.multisample" type="checkbox" id="fullscreen" (change)="configChanged()">
+                    <span class="checkmark"></span>
+                </label>
+            </td>
+        </tr>
+        <!--
+        <tr>
+            <td class="first">
+                Auto Update
+            </td>
+            <td class="second">
+                <input [(ngModel)]="configService.autoUpdate" type="checkbox" id="auto-update" (change)="configChanged()">
+            </td>
+        </tr>
+        -->
+    </table>
+</div>

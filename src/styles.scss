@@ -18,11 +18,11 @@ modal
   left: 312px;
   width: 400px;
   height: 300px;
-  z-index: 4;
+  z-index: 5;
   overflow: auto;
-  -webkit-box-shadow: 7px 4px 32px 0px rgba(0,0,0,0.75);
-  -moz-box-shadow: 7px 4px 32px 0px rgba(0,0,0,0.75);
-  box-shadow: 7px 4px 32px 0px rgba(0,0,0,0.75);
+  -webkit-box-shadow: 9px 11px 20px 9px rgba(0, 0, 0, 0.75);
+  -moz-box-shadow: 9px 11px 20px 9px rgba(0, 0, 0, 0.75);
+  box-shadow: 9px 11px 20px 9px rgba(0, 0, 0, 0.75);
 }
 
 .modal-open

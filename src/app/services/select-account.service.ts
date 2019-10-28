@@ -2,7 +2,7 @@ import { Injectable } from "@angular/core";
 import { GameAccountViewModel, GameAccountService } from "./generated.services";
 import { map } from "rxjs/operators";
 
-@Injectable()
+@Injectable({providedIn: "root"})
 export class SelectAccountService
 {
     selectedAccount : string = null;
@@ -11,7 +11,7 @@ export class SelectAccountService
     errorMessages: string[];
     hasErrors: boolean;
     success: boolean;
-
+    private modal = null;
     constructor(public gameAccountService : GameAccountService){
 
     }
@@ -74,5 +74,57 @@ export class SelectAccountService
             }
           )
         ).subscribe();
+    }
+
+    public editAccount(model: GameAccountViewModel)
+    {
+      this.gameAccountService.gameAccountPatch(model).pipe(
+        map(
+          result => {
+            console.log(result);
+            if(result.errors)
+            {
+              this.success = false;
+              this.hasErrors = true;
+              this.errorMessages = result.errors;
+              console.log(result.errors)
+            }
+            else
+            {
+              this.success = true;
+              this.hasErrors = false;
+              this.errorMessages = null;
+              setTimeout(() => {
+                this.updateGameAccounts();
+              },)
+            }
+          },
+          error => {
+            console.log(error);
+          }
+        )
+      ).subscribe();
+    }
+
+    setRef(modal: any)
+    {
+        this.modal = modal;
+    }
+
+    close()
+    {
+        this.modal.close();
+        this.modal = null;
+    }
+
+    public open()
+    {
+      if(this.modal)
+      {
+          if(!this.modal.opened)
+          {
+              this.modal.open();
+          }
+      }
     }
 }

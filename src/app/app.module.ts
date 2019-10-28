@@ -28,6 +28,10 @@ import { IniService } from './services/ini.service';
 import { SelectAccountService } from './services/select-account.service';
 import { ModalService } from './services/modal.service';
 import { ModalComponent } from './components/modal/modal.component';
+import { SettingsComponent } from './components/home/settings/settings.component';
+import { SelectAccountComponent } from './components/select-account/select-account.component';
+import { SliderComponent } from './components/home/slider/slider.component';
+import {SlideshowModule} from 'ng-simple-slideshow';
 
 // AoT requires an exported function for factories
 export function HttpLoaderFactory(http: HttpClient) {
@@ -36,7 +40,7 @@ export function HttpLoaderFactory(http: HttpClient) {
 
 export class AppConsts
 {
-  static baseUrl = "https://api.euphresia-flyff.com"
+  static baseUrl = "https://api.euphresia-flyff.com/api"
 }
 
 export function getBaseUrl() : string {
@@ -54,11 +58,15 @@ export function getToken(): string {
     WebviewDirective,
     LoginComponent,
     RegisterComponent,
-    ModalComponent
+    ModalComponent,
+    SettingsComponent,
+    SelectAccountComponent,
+    SliderComponent
   ],
   imports: [
     BrowserModule,
     FormsModule,
+    SlideshowModule,
     HttpClientModule,
     AppRoutingModule,
     TranslateModule.forRoot({

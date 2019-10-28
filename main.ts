@@ -21,8 +21,8 @@ autoUpdater.logger = electronLog;
 let configEntries : any = null;
 
 const serverRoot = 'https://patch.euphresia-flyff.com/';
-const localClientPath = '../'//'E:\\Flyff\\Euphresia FlyFF - Beta\\'//process.env.PORTABLE_EXECUTABLE_DIR + '\\';
-const tempExecPath = path.join(path.resolve('../'),'binary\\Euphresia.exe');
+const localClientPath = path.dirname(app.getPath('exe')) + '\\client\\'//'E:\\Flyff\\Euphresia FlyFF - Beta\\'//;
+const tempExecPath = path.join(path.resolve(localClientPath),'binary\\Euphresia.exe');
 const appdata = path.join(process.env.LOCALAPPDATA,'Euphresia\\Flyff\\');
 const iniPath = path.join(appdata,'Euphresia.ini');
 const patchConfigPath = path.join(appdata,'EuphresiaLauncher.ini');
@@ -474,18 +474,23 @@ const processPatchList = (path,onFinished,onError) => {
   })
 }
 
-const downloadGzipFileTo = (path,saveAs,onSuccess,onError) =>
+const downloadGzipFileTo = (path1,saveAs,onSuccess,onError) =>
 {
+  if(!fs.existsSync(path.dirname(saveAs)))
+  {
+    fs.mkdirSync(path.dirname(saveAs));
+  }
+
   const ws = fs.createWriteStream(saveAs)
 
   ws.on('error',() => {
     return onError('Unable to save file ' + saveAs + '.\n Make sure that your launcher is in the same Directory as your Game Client!');
   })
 
-  const req = request.get(path);
+  const req = request.get(path1);
 
   req.on('error',() => {
-    return onError('Unable to retrieve '+path+'.\n There is either a problem with your connection or the service is currently unavailable.\nTry restarting the Launcher.\nIf the error persists, contact the Euphresia Staff.');
+    return onError('Unable to retrieve '+path1+'.\n There is either a problem with your connection or the service is currently unavailable.\nTry restarting the Launcher.\nIf the error persists, contact the Euphresia Staff.');
   })
 
   const unz = zlib.createGunzip();
@@ -495,7 +500,7 @@ const downloadGzipFileTo = (path,saveAs,onSuccess,onError) =>
   };
   try
   {
-    request({url: path, 'headers': headers, method: 'GET'})
+    request({url: path1, 'headers': headers, method: 'GET'})
     .pipe(unz) // unzip
     .pipe(ws);
 

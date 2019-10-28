@@ -1,6 +1,6 @@
 {
   "name": "Euphresia-Launcher",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Euphresia Launcher",
   "author": {
     "name": "Euphresia Flyff Launcher"
@@ -90,6 +90,7 @@
     "electron-log": "^3.0.8",
     "electron-simple-updater": "^1.5.0",
     "electron-updater": "^4.1.2",
+    "ng-simple-slideshow": "^1.2.9",
     "ngx-smart-modal": "^7.1.1",
     "request": "^2.88.0",
     "zlib": "^1.0.5"

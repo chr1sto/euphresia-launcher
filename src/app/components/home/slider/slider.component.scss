@@ -1,0 +1,70 @@
+:host
+{
+    display: inline-block;
+    color: white;
+    width: 100%;
+    height: 100%;
+    top: 0px;
+    left: 0px;
+    position: absolute;
+}
+
+.border
+{
+    background-image: url('../../../../assets/window.png');
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+}
+
+.inner
+{
+    background-color: white;
+    height: calc(100% - 54px);
+    width: calc(100% - 54px);
+    position: absolute;
+    left: 28px;
+    right: 0;
+    top: 28px;
+    bottom: 0;
+    display: block;
+    slideshow
+    {
+        display: block;
+        width: 100%;
+    }
+}
+
+.slider-idx
+{
+    float: right;
+    list-style: none;
+    margin-right: 38px;
+    margin-top: 35px;
+    display: block;
+    z-index: 6;
+    position: relative;
+
+    li
+    {
+        float: right;
+        width: 40px;
+        height: 38px;
+        background-image: url('../../../../assets/dot.png');
+    }
+
+    li:hover
+    {
+        background-image: url('../../../../assets/dot_cur.png');
+        cursor: pointer;
+    }
+
+    li.is-active
+    {
+        background-image: url('../../../../assets/dot_cur.png');
+    }
+}

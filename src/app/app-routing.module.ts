@@ -4,12 +4,26 @@ import { Routes, RouterModule } from '@angular/router';
 import { LoginComponent } from './components/login/login.component';
 import { AuthGuardService } from './guards/auth-guard';
 import { RegisterComponent } from './components/register/register.component';
+import { SliderComponent } from './components/home/slider/slider.component';
+import { SettingsComponent } from './components/home/settings/settings.component';
 
 const routes: Routes = [
     {
         path: '',
         component: HomeComponent,
-        canActivate: [AuthGuardService]
+        canActivate: [AuthGuardService],
+        children:
+        [
+            {
+                path: '',
+                component: SliderComponent
+            },
+            {
+                path: 'settings',
+                component: SettingsComponent,
+                pathMatch: 'full'
+            }
+        ]
     },
     {
         path: 'login',

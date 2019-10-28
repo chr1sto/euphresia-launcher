@@ -5,76 +5,101 @@
     left: 75px;
 }
 
-.button-start-color
+
+
+
+.container-home
+{
+    height: 342px;
+    width: 924px;
+    position: relative;
+    top: 120px;
+    margin-left: 50px;
+    margin-right: 50px;
+    background-image: url('../assets/window-with-bg.png');
+
+
+}
+
+.progress-container
 {
     position: relative;
-    top: 97px;
-    left: 435px;
-    background-image: url("../assets/play.png");
-    width: 153px;
-    height: 122px;
-}
+    top: 87px;
+    margin-left: 25px;
+    margin-right: 25px;
+    height: 135px;
 
-.button-start-color:hover
-{
-    background-image: url("../assets/play_hov.png");
-    cursor: pointer;
-}
+    p{
+        position: absolute;
+        left:35px;
+        top:10px;
+        color: white;
+    }
 
-.button-start-grey
-{
-    position: relative;
-    top: 97px;
-    left: 435px;
-    background-image: url("../assets/play_disabled.png");
-    width: 153px;
-    height: 122px;
-}
+    .button-start-color
+    {
+        position: absolute;
+        top: 11px;
+        left: 410px;
+        background-image: url("../assets/play.png");
+        width: 153px;
+        height: 122px;
+    }
 
-.button-patch-color
-{
-    position: relative;
-    top: 97px;
-    left: 435px;
-    background-image: url("../assets/patch.png");
-    width: 153px;
-    height: 122px;
-}
+    .button-start-color:hover
+    {
+        background-image: url("../assets/play_hov.png");
+        cursor: pointer;
+    }
 
-.button-patch-color:hover
-{
-    background-image: url("../assets/patch_hov.png");
-    cursor: pointer;
-}
+    .button-start-grey
+    {
+        position: absolute;
+        top: 11px;
+        left: 410px;
+        background-image: url("../assets/play_disabled.png");
+        width: 153px;
+        height: 122px;
+    }
 
-.button-patch-grey
-{
-    position: relative;
-    top: 97px;
-    left: 435px;
-    background-image: url("../assets/patch_disabled.png");
-    width: 153px;
-    height: 122px;
-}
+    .button-patch-color
+    {
+        position: absolute;
+        top: 11px;
+        left: 410px;
+        background-image: url("../assets/patch.png");
+        width: 153px;
+        height: 122px;
+    }
+
+    .button-patch-color:hover
+    {
+        background-image: url("../assets/patch_hov.png");
+        cursor: pointer;
+    }
+
+    .button-patch-grey
+    {
+        position: absolute;
+        top: 11px;
+        left: 410px;
+        background-image: url("../assets/patch_disabled.png");
+        width: 153px;
+        height: 122px;
+    }
 
 
-.progress-right
-{
-    position: absolute;
-    top: 468px;
-    left: 590px;
-}
+    .progress-right
+    {
+        position: absolute;
+        top: 45px;
+        right: 30px;
+    }
 
-.progress-left
-{
-    position: absolute;
-    top: 468px;
-    left: 52px;
-}
-
-p{
-    position: absolute;
-    left:56px;
-    top:435px;
-    color: white;
+    .progress-left
+    {
+        position: absolute;
+        top: 45px;
+        left: 30px;
+    }
 }

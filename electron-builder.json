@@ -23,7 +23,8 @@
     "icon": "dist/favicon.ico",
     "target": [
       "nsis"
-    ]
+    ],
+    "requestedExecutionLevel": "highestAvailable" 
   },
   "mac": {
     "icon": "dist",
@@ -53,7 +54,8 @@
     }
   },
   "extraFiles": [
-    "./dependencies/VC_redist.x86.exe"
+    "./dependencies/VC_redist.x86.exe",
+    "./client/**"
   ],
   "publish": {
     "provider": "generic",

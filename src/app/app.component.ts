@@ -88,91 +88,34 @@ export class AppComponent implements OnInit {
 
   toggleProfile()
   {
+    this.clickCount = 0;
+    const outsideClickListener = event => {
+      this.clickCount += 1
+      var x = event.clientX;
+      var y = event.clientY;
+      if (this.clickCount > 1 && this.profileUnfolded && (x < 18 || x > 152 || y < 98 || y > 248))
+      { // or use: event.target.closest(selector) === null
+        this.profileUnfolded = false;
+        removeClickListener()
+      }
+  }
+
+    const removeClickListener = () => {
+        document.removeEventListener('click', outsideClickListener)
+    }
+
+    document.addEventListener('click', outsideClickListener)
     this.profileUnfolded = !this.profileUnfolded;
-    if(this.profileUnfolded)
-    {
-      setTimeout(() => document.getElementById('profile').addEventListener('mouseleave',(e) => {      
-        if(this.profileUnfolded)
-        {
-          let x = 18;
-          let y = 71;
-          let w = 134;
-          let h = 186;
-          if(e.x < x || e.x > (x + w) || e.y < y || e.y > (y + h))
-          {
-            this.toggleProfile();
-          }
-        }
-      }));
-    }
   }
 
-  toggleSelectAcc()
-  {
-    this.selectAccUnfolded = !this.selectAccUnfolded;
-    if(this.selectAccUnfolded)
-    {
-      setTimeout(() => document.getElementById('select-acc').addEventListener('mouseleave',(e) => {      
-        if(this.selectAccUnfolded)
-        {
-          let x = 332;
-          let y = 67;
-          let w = 136;
-          let h = 186;
-          if(e.x < x || e.x > (x + w) || e.y < y || e.y > (y + h))
-          {
-            this.toggleSelectAcc();
-          }
-        }
-      }));
-    }
-  }
-
+  /*
   selectAccount(item: any)
   {
     this.selectAccService.selectAccount(item.alias,item.account);
     this.electronService.ipcRenderer.send('select-account',this.selectAccService.selectedAccountId);
     //TODO: SEND TO IPCRENDERER
   }
-
-  toggleOptions()
-  {
-    if(!this.configService.iniLoaded)
-    {
-      this.configService.getConfig();
-    }
-    this.optionsUnfolded = !this.optionsUnfolded;
-    if(this.optionsUnfolded)
-    {
-      setTimeout(() => document.getElementById('options').addEventListener('mouseleave',(e) => {      
-        if(this.optionsUnfolded)
-        {
-          let x = 709;
-          let y = 63;
-          let w = 263;
-          let h = 194;
-          if(e.x < x || e.x > (x + w) || e.y < y || e.y > (y + h))
-          {
-            this.toggleOptions();
-          }
-        }
-      }));
-    }
-    else
-    {
-      if(this.changed)
-      {
-        this.configService.saveConfig();
-        this.changed = false;
-      }
-    }
-  }
-
-  changed : boolean = false;
-  configChanged()
-  {
-    this.changed = true;
-  }
+  */
 
   openWeb()
   {
@@ -183,4 +126,6 @@ export class AppComponent implements OnInit {
   {
     this.electronService.ipcRenderer.send('open-web','https://discord.gg/DbGu67S')
   }
+
+  clickCount: number = 0;
 }
