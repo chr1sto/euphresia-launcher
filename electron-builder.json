@@ -1,5 +1,5 @@
 {
-  "productName": "Euphresia Flyff Launcher",
+  "productName": "Euphresia Flyff",
   "directories": {
     "output": "release/"
   },
@@ -44,7 +44,7 @@
     "perMachine": true,
     "allowElevation": true,
     "allowToChangeInstallationDirectory": true,
-    "include": "build/installer.nsh",
+    "script": "build/installer.nsi",
     "installerIcon":"dist/favicon.ico",
     "uninstallerIcon":"dist/favicon.ico",
     "publish": {
