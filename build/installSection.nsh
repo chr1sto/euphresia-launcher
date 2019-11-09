@@ -36,7 +36,7 @@
   CreateDirectory "$PARENTDIR\Music"
   CreateDirectory "$PARENTDIR\Sound"
 
-  RMDir /r "client"
+  RMDir /r "$INSTDIR\client"
 !macroend
 
 InitPluginsDir
