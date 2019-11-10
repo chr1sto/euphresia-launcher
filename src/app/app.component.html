@@ -1,14 +1,18 @@
 <div class="this">
     <div class="top-panel">
         <div class="right-top">
-            <div class="icon-announce" [ngClass]="{'hidden': !this.authenticationService.isLoggedIn}"></div>
+            <!--
+                <div class="icon-announce" [ngClass]="{'hidden': !this.authenticationService.isLoggedIn}"></div>
+
+            -->
             <a class="icon-option" [ngClass]="{'hidden': !this.authenticationService.isLoggedIn}" routerLink="/settings"></a>
             <div class="icon-minimize" (click)="minimize()"></div>
             <div class="icon-close" (click)="close()"></div>
         </div>
         <div class="left-top" [ngClass]="{'hidden': !this.authenticationService.isLoggedIn}">
-            <a class="icon-profile" routerLink="/"></a>
+            <a class="icon-profile"></a>
             <div class="icon-expand-profile" (click)="this.toggleProfile()"></div>
+            <a class="icon-home" [ngClass]="{'hidden': !this.authenticationService.isLoggedIn}" routerLink="/"></a>
         </div>
     </div>
     <router-outlet></router-outlet>

@@ -106,6 +106,19 @@
     cursor: pointer;
 }
 
+.icon-home
+{
+    background-image: url("../assets/home.png");
+    width: 40px;
+    height: 40px;
+    margin-left: 10px;
+    background-size: contain;
+    &:hover
+    {
+        background-image: url("../assets/home_hov.png");
+    }
+}
+
 .icon-select-acc
 {
     margin-top:2px;
