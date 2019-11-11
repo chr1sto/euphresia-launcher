@@ -17,7 +17,9 @@
         "!_config.yml",
         "!karma.conf.js",
         "!tsconfig.json",
-        "!tslint.json"
+        "!tslint.json",
+        "./src/app/models/app-commands.ts",
+        "./src/app/models/app-state.ts"
     ],
   "win": {
     "icon": "dist/favicon.ico",

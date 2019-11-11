@@ -3,6 +3,8 @@ import { GameAccountService, GameAccountViewModel } from '../../services/generat
 import { map } from 'rxjs/operators';
 import { SelectAccountService } from '../../services/select-account.service';
 import { ElectronService } from '../../providers/electron.service';
+import { InteropService } from '../../services/interop.service';
+import { CommandType } from '../../models/app-commands';
 
 @Component({
   selector: 'select-account',
@@ -24,7 +26,7 @@ export class SelectAccountComponent implements OnInit, OnDestroy {
   constructor(
     public selectAccService : SelectAccountService,
     public el : ElementRef,
-    public electronService : ElectronService) { 
+    public interopService : InteropService) { 
       this.selectAccService.updateGameAccounts();
       this.element = el.nativeElement;
     }
@@ -100,6 +102,6 @@ export class SelectAccountComponent implements OnInit, OnDestroy {
 
   startGame()
   {
-    this.electronService.ipcRenderer.send('start-game',this.selectAccService.selectedAccountId);
+    this.interopService.SendCommand(CommandType.START_GAME,this.selectAccService.selectedAccountId);
   }
 }

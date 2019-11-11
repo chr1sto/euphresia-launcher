@@ -3,8 +3,8 @@
 </div>
 <div class="progress-container">
     <p class="left-status">{{statusMessage}}</p>
-    <p class="right-status">{{progressFileSizeFormatted}} / {{totalFileSizeFormatted}}</p>
-    <p class="speed">{{speedFormatted}}/s</p>
+    <p class="right-status">{{percentProgress | number:'1.0-0'}} %</p>
+    <p *ngIf="this.interopService.State?.Progress?.DownloadSpeed && this.interopService.State?.State == 4" class="speed">{{this.interopService.State.Progress.DownloadSpeed | fileSize}}/s</p>
     <img class="progress-right" src="./assets/loadbar_bg.png">
     <img class="progress-right" src="./assets/loadbar_red.png" id="part-right">
     <img class="progress-right" src="./assets/loadbar_frame.png">

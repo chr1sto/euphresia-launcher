@@ -4,6 +4,9 @@ import { GameAccountService, GameAccountViewModel } from './services/generated.s
 import { map } from 'rxjs/operators';
 import { IniService } from './services/ini.service';
 import { SelectAccountService } from './services/select-account.service';
+import { InteropService } from './services/interop.service';
+import { CommandType } from './models/app-commands';
+import { CurrentState } from './models/app-state';
 
 @Component({
   selector: 'app-home',
@@ -25,6 +28,7 @@ export class HomeComponent implements OnInit {
   startButtonText: string = "Check for Updates";
   checkedForUpdates: boolean = false;
   upToDate: boolean = false;
+  percentProgress : number = 0;
 
   totalFileSize : number = 0;
   progressFileSize : number = 0;
@@ -37,90 +41,44 @@ export class HomeComponent implements OnInit {
   //
   runningClients : any[] = [];
 
-  constructor(public electronService: ElectronService, 
+  constructor(public interopService :InteropService, 
     private ref: ChangeDetectorRef,
     public configService : IniService,
     public selectAccService : SelectAccountService) { 
 
       this.selectAccService.updateGameAccounts();
     }
-
   ngOnInit() {
     this.updateBarWidth();
-
-    this.electronService.ipcRenderer.on('status-update',(event,data) => {
-      this.statusMessage = data;
-      this.ref.detectChanges();
-    });
-
-    this.electronService.ipcRenderer.on('file-count',(event,data) => {
-      this.totalFileCount = data;
-    });
-
-    this.electronService.ipcRenderer.on('update-progress',(event,data) => {
-      this.processedFileCount = data;    
-      this.partWidthLeft = Math.min(this.processedFileCount / this.totalFileCount * this.widthInPixel * 2,this.widthInPixel);     
-      this.partWidthRight = Math.max((this.processedFileCount / this.totalFileCount * this.widthInPixel * 2) - this.widthInPixel,0);
-      console.log(this.partWidthLeft,'::',this.partWidthRight);
-      this.updateBarWidth();
-      if(this.processedFileCount == this.totalFileCount) 
+    this.interopService.OnUpdate.subscribe(() => {
+      switch(this.interopService.State.State)
       {
-        setTimeout(() => {
-          this.startButtonText = "Start Game";
-          this.statusMessage = 'Finished';
-          this.patchInProcess = false;
-          this.upToDate = true;
-          this.ref.detectChanges();
-        },40);
-      }    
-      this.ref.detectChanges();  
-    });
-
-    this.electronService.ipcRenderer.on('patch-available',(event,data) =>
-    {
-      this.statusMessage = data;
-      this.patchAvailable = true;
-      this.startButtonText = "Update";
-      this.upToDate = false;
-      this.ref.detectChanges();
-    })
-
-    this.electronService.ipcRenderer.on('up-to-date',(event,data) => {
-      this.startButtonText = "Start Game";
-      this.statusMessage = 'Up to Date!';
-      this.patchInProcess = false;
-      this.upToDate = true;
-      this.partWidthLeft = this.widthInPixel;
-      this.partWidthRight = this.widthInPixel;
-      this.updateBarWidth();
-      this.ref.detectChanges();
-    })
-
-    this.electronService.ipcRenderer.on('update-client-list',(event,data) => {
-      this.runningClients = data;
-    })
-
-    this.electronService.ipcRenderer.on('total-file-size',(event,data) => {
-      this.totalFileSize = data;
-      this.totalFileSizeFormatted = this.formatBytes(this.totalFileSize);
-      this.ref.detectChanges();
-    })
-
-    //'progress-size',{progress: fileSizeProgress,speed: speed}
-    this.electronService.ipcRenderer.on('progress-size',(event,data) => {
-      
-      if(data && data.speed != null && data.progress != null) 
-      {
-        this.progressFileSize = data.progress;
-        this.speed = data.speed;
-        var pfsf = this.formatBytes(this.progressFileSize);
-        this.progressFileSizeFormatted = pfsf;
-        var sf = this.formatBytes(this.speed);
-        if(sf) this.speedFormatted = sf;
-        this.ref.detectChanges();
+        case CurrentState.UPDATING:
+            this.partWidthLeft = Math.min(this.interopService.State.Progress.ProcessedCount / this.interopService.State.Progress.TotalCount * this.widthInPixel * 2,this.widthInPixel);     
+            this.partWidthRight = Math.max((this.interopService.State.Progress.ProcessedCount / this.interopService.State.Progress.TotalCount * this.widthInPixel * 2) - this.widthInPixel,0);
+            this.percentProgress = this.interopService.State.Progress.ProcessedSize / this.interopService.State.Progress.TotalSize * 100
+            this.statusMessage = "Updating...";
+          break;
+        case CurrentState.UP_TO_DATE:
+            this.partWidthLeft = this.widthInPixel;
+            this.partWidthRight = this.widthInPixel;
+            this.percentProgress = 100;
+            this.statusMessage = "Game is up to date!";
+          break;
+        default:
+            this.partWidthLeft = 0;
+            this.partWidthRight = 0;
+            this.percentProgress = 0;
+            this.statusMessage = "Checking for Updates...";
+          break;
       }
-    })
 
+      if(this.interopService.State.State == 2) this.statusMessage = "Update available!";
+
+      this.updateBarWidth();
+
+      this.ref.detectChanges();
+    })
     this.patch();
     this.ref.detectChanges();
 
@@ -145,7 +103,7 @@ export class HomeComponent implements OnInit {
   }
 
   updateBarWidth()
-  {
+  {   
     document.getElementById('part-left').style.clip = 'rect(0,'+Math.floor(this.partWidthLeft)+'px,51px,0)';
     document.getElementById('part-right').style.clip = 'rect(0,'+Math.floor(this.partWidthRight)+'px,51px,0)';
     this.ref.detectChanges();
@@ -170,7 +128,7 @@ export class HomeComponent implements OnInit {
     if(!this.patchInProcess)
     {
       this.patchInProcess = true;
-      this.electronService.ipcRenderer.send('start-download-process','test');
+      this.interopService.SendCommand(CommandType.START_PATCH);     
       this.patchAvailable = false;
       this.ref.detectChanges();
     }
@@ -180,7 +138,7 @@ export class HomeComponent implements OnInit {
   {
     if(!this.patchInProcess)
     {
-      this.electronService.ipcRenderer.send('check-for-updates');
+      this.interopService.SendCommand(CommandType.CHECK_FOR_UPDATES);
       this.checkedForUpdates = true;
     }
   }
@@ -192,75 +150,37 @@ export class HomeComponent implements OnInit {
 
   getStartButtonClass()
   {
-    //game color wenn: Account ausgewählt, uptodate
-    //game grey: wenn kein Account ausgwählt
-    //patch color wenn nicht uptodate und patch available
-    //patch grey wenn patch in progress
-
-    if(this.upToDate)
+    if(this.interopService.State)
     {
-      if(this.selectAccService.selectedAccountId)
+      switch(+this.interopService.State.State)
       {
-        return 'button-start-color';
-      }
-      else
-      {
-        return 'button-start-grey';
-      }
+        case CurrentState.UP_TO_DATE:
+          return 'button-start-color';
+        case CurrentState.UPDATING:
+          return 'button-patch-grey';
+        case CurrentState.UPDATE_AVAILABLE:
+          return 'button-patch-color';
+        default:
+          return 'button-patch-grey';
+      }   
     }
     else
     {
-      if(this.patchInProcess)
-      {
-        return 'button-patch-grey';
-      }
-      else
-      {
-        if(this.patchAvailable)
-        {
-          return 'button-patch-color'
-        }
-        else
-        {
-          return 'button-patch-grey';
-        }
-      }
+      return 'button-patch-grey';
     }
   }
 
   gameButtonClick()
   {    
-    if(this.upToDate)
+
+    switch(+this.interopService.State.State)
     {
-      if(this.selectAccService.selectedAccountId)
-      {
-        this.startGame();        
-      }
-      else
-      {
-        //MODALSERVICE
-      }
-    }
-    else
-    {
-      if(this.patchInProcess)
-      {
-        
-      }
-      else
-      {
-        if(this.patchAvailable)
-        {
-          if(!this.patchInProcess)
-          {
-            this.startPatchProcess();
-          }
-        }
-        else
-        {
-          //MODALSERVICE
-        }
-      }
-    }
+      case CurrentState.UP_TO_DATE:
+        this.startGame();
+        break;
+      case CurrentState.UPDATE_AVAILABLE:
+        this.startPatchProcess();
+        break;
+    }  
   }
 }

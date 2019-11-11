@@ -32,6 +32,8 @@ import { SettingsComponent } from './components/home/settings/settings.component
 import { SelectAccountComponent } from './components/select-account/select-account.component';
 import { SliderComponent } from './components/home/slider/slider.component';
 import {SlideshowModule} from 'ng-simple-slideshow';
+import { InteropService } from './services/interop.service';
+import { FileSizePipe } from './pipes/file-size.pipe';
 
 // AoT requires an exported function for factories
 export function HttpLoaderFactory(http: HttpClient) {
@@ -61,7 +63,8 @@ export function getToken(): string {
     ModalComponent,
     SettingsComponent,
     SelectAccountComponent,
-    SliderComponent
+    SliderComponent,
+    FileSizePipe
   ],
   imports: [
     BrowserModule,
@@ -93,7 +96,8 @@ export function getToken(): string {
     GameAccountService,
     IniService,
     SelectAccountService,
-    ModalService
+    ModalService,
+    InteropService
   ],
   bootstrap: [AppComponent]
 })

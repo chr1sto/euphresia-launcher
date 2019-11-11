@@ -5,6 +5,8 @@ import { HttpClient } from '@angular/common/http';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { map } from 'rxjs/operators';
 import { ElectronService } from '../providers/electron.service';
+import { InteropService } from './interop.service';
+import { CommandType } from '../models/app-commands';
 
 @Injectable()
 export class AuthenticationService
@@ -13,13 +15,13 @@ export class AuthenticationService
     errorMessages : string[];
     hasErrors : boolean;
 
-    constructor(private _http: HttpClient, private _accountService: AccountService,private _electron: ElectronService) {
+    constructor(private _http: HttpClient, private _accountService: AccountService,private _interopService: InteropService) {
         if(this.isAuthenticated())
         {
             this.isLoggedIn = true;
             this.userInfo = this.getUserInfo();
             var token = localStorage.getItem('token');
-            this._electron.ipcRenderer.send('token',token);
+            this._interopService.SendCommand(CommandType.SET_TOKEN,token);
         }
     }
 
@@ -42,7 +44,7 @@ export class AuthenticationService
                         this.isLoggedIn = true;
                         this.hasErrors = false;
                         this.errorMessages = null;
-                        this._electron.ipcRenderer.send('token',result.data);
+                        this._interopService.SendCommand(CommandType.SET_TOKEN,result.data);
                     }
                     else
                     {
@@ -99,6 +101,6 @@ export class AuthenticationService
         localStorage.removeItem('token');
         this.isLoggedIn = false;
         this.userInfo = null;
-        this._electron.ipcRenderer.send('token',null);
+        this._interopService.SendCommand(CommandType.SET_TOKEN,null);
     }
 }
