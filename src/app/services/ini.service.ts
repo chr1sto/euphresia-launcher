@@ -20,41 +20,56 @@ export class IniService
         this.electronService.ipcRenderer.on('config',(event,args) => 
         {
             this.config = args;
-            for(let i = 0; i < this.config.length; i++)
+            if(this.config)
             {
-                var obj = this.config[i];
-                var key : string = obj.key;
-                switch(key.toUpperCase())
+                for(let i = 0; i < this.config.length; i++)
                 {
-                    case 'RESOLUTION':
-                    this.resolution = obj.value;
-                    break;
-                    case 'INTERVERSION':
-                    this.interface = obj.value;
-                    break;
-                    case 'FULLSCREEN':
-                    this.fullscreen = obj.value == '1' ? true : false;
-                    break;
-                    case 'AUTOUPDATE':
-                    this.autoUpdate = obj.value == '1' ? true : false;
-                    break;
-                    case 'FOVINCRASE':
-                    this.fovInCrase = obj.value == '1' ? true : false;
-                    break;
-                    case 'ANISOTROPHY':
-                    this.anisotrophy = obj.value;
-                    break;
-                    case 'NTASK':
-                    this.ntask = obj.value;
-                    break;
-                    case 'MULTISAMPLE':
-                    this.multisample = obj.value == '1' ? true : false;
-                    break;
-                    default:
-                    break; 
+                    var obj = this.config[i];
+                    var key : string = obj.key;
+                    switch(key.toUpperCase())
+                    {
+                        case 'RESOLUTION':
+                        this.resolution = obj.value;
+                        break;
+                        case 'INTERVERSION':
+                        this.interface = obj.value;
+                        break;
+                        case 'FULLSCREEN':
+                        this.fullscreen = obj.value == '1' ? true : false;
+                        break;
+                        case 'AUTOUPDATE':
+                        this.autoUpdate = obj.value == '1' ? true : false;
+                        break;
+                        case 'FOVINCRASE':
+                        this.fovInCrase = obj.value == '1' ? true : false;
+                        break;
+                        case 'ANISOTROPHY':
+                        this.anisotrophy = obj.value;
+                        break;
+                        case 'NTASK':
+                        this.ntask = obj.value;
+                        break;
+                        case 'MULTISAMPLE':
+                        this.multisample = obj.value == '1' ? true : false;
+                        break;
+                        default:
+                        break; 
+                    }
                 }
+                this.iniLoaded = true;
             }
-            this.iniLoaded = true;
+            else
+            {
+                this.config = new Array<any>();
+                this.config.push({key: 'RESOLUTION', value: this.resolution});
+                this.config.push({key: 'INTERVERSION', value: null});
+                this.config.push({key: 'FULLSCREEN', value: null});
+                this.config.push({key: 'AUTOUPDATE', value: null});
+                this.config.push({key: 'FOVINCRASE', value: null});
+                this.config.push({key: 'ANISOTROPHY', value: null});
+                this.config.push({key: 'NTASK', value: null});
+                this.config.push({key: 'MULTISAMPLE', value: null});
+            }
         })
     }
 

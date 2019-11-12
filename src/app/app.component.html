@@ -26,6 +26,7 @@
 <div class="drag-region bottom2"></div>
 
 <input [(ngModel)]="this.selectAccService.selectedAccountId" class="admin-input" *ngIf="this.authenticationService.isAdmin()">
+<button class="debug-button" routerLink="/debug" *ngIf="this.authenticationService.isAdmin()">Debug Window</button>
 
 <div class="profile" id="profile" *ngIf="profileUnfolded">
     <p class="email" id="email">{{ this.authenticationService.userInfo.email }}</p>

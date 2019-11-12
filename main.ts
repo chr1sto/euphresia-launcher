@@ -27,6 +27,7 @@ export class CurrentProgress
     TotalSize : number;
     ProcessedSize : number;
     DownloadSpeed : number;
+    CurrentFile : string;
 }
 
 export class AppState
@@ -566,7 +567,7 @@ const dlSingle = (index,updateFileCount,onSuccess,onProgress) =>
   let file = fileList[index];
   let url1 = serverRoot + file.Dir.replace('\\','/') + '.gz';
   let error = false;
-  downloadGzipFileTo(url1,localClientPath + file, file.Size,() => 
+  downloadGzipFileTo(url1,localClientPath + file.Dir, file.Size,() => 
   { 
     updateFileCount(1,file.Size)
     if(index+1 < fileList.length && !error)
@@ -610,8 +611,9 @@ const processPatchList = (path,onFinished,onError) => {
     {
       var cols = line.split(' ');
       var date = new Date(parseInt(cols[1]));
-      var file = cols[3];
       var size = parseInt(cols[2]);
+      cols.splice(0,3);
+      var file = cols.join(' ');
       var fileNotFound = false;
       var exSize;
       var exDate;
@@ -654,6 +656,7 @@ var fileSizeProgress : number = 0;
 
 const downloadGzipFileTo = (path1,saveAs,size,onSuccess,onError,onProgress) =>
 {
+  APP_STATE.Progress.CurrentFile = saveAs;
   console.log(path1,saveAs);
   try
   {

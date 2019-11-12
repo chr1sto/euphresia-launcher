@@ -1,0 +1,18 @@
+:host
+{
+    margin: 40px;
+    width: calc(100% - 80px);
+    height: calc(100% - 80px);
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    display: inline-block;
+}
+
+p
+{
+    color: #d68838;
+    text-shadow: 0.1em 0.1em 0.2em black;
+    text-align: left;
+    margin: 0;
+}

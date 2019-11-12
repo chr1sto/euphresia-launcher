@@ -14,6 +14,7 @@ export class CurrentProgress
     TotalSize : number;
     ProcessedSize : number;
     DownloadSpeed : number;
+    CurrentFile : string;
 }
 
 export class AppState

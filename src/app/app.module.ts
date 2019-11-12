@@ -34,6 +34,7 @@ import { SliderComponent } from './components/home/slider/slider.component';
 import {SlideshowModule} from 'ng-simple-slideshow';
 import { InteropService } from './services/interop.service';
 import { FileSizePipe } from './pipes/file-size.pipe';
+import { DebugComponent } from './components/home/debug/debug.component';
 
 // AoT requires an exported function for factories
 export function HttpLoaderFactory(http: HttpClient) {
@@ -64,6 +65,7 @@ export function getToken(): string {
     SettingsComponent,
     SelectAccountComponent,
     SliderComponent,
+    DebugComponent,
     FileSizePipe
   ],
   imports: [

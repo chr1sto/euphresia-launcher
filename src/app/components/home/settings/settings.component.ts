@@ -12,7 +12,7 @@ export class SettingsComponent implements OnInit {
     }
 
   ngOnInit() {
-    
+    this.configService.getConfig();
   }
 
   configChanged()

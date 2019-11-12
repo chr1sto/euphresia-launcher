@@ -6,6 +6,7 @@ import { AuthGuardService } from './guards/auth-guard';
 import { RegisterComponent } from './components/register/register.component';
 import { SliderComponent } from './components/home/slider/slider.component';
 import { SettingsComponent } from './components/home/settings/settings.component';
+import { DebugComponent } from './components/home/debug/debug.component';
 
 const routes: Routes = [
     {
@@ -21,6 +22,11 @@ const routes: Routes = [
             {
                 path: 'settings',
                 component: SettingsComponent,
+                pathMatch: 'full'
+            },
+            {
+                path: 'debug',
+                component: DebugComponent,
                 pathMatch: 'full'
             }
         ]

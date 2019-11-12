@@ -23,18 +23,21 @@
 !macroend
 
 !macro CopyGameFiles
-  Var /GLOBAL PARENTDIR
-  !insertmacro GetParent
-  ${GetParent} "$INSTDIR" $PARENTDIR
+  ${ifNot} ${isUpdated}
+    Var /GLOBAL PARENTDIR
+    !insertmacro GetParent
+    ${GetParent} "$INSTDIR" $PARENTDIR
 
-  StrCpy $PARENTDIR "$PARENTDIR\Client"
-  CreateDirectory "$PARENTDIR"
+    StrCpy $PARENTDIR "$PARENTDIR\Client"
+    CreateDirectory "$PARENTDIR"
 
-  CopyFiles /SILENT "$INSTDIR\client\binary" "$PARENTDIR\binary"
+    CopyFiles /SILENT "$INSTDIR\client\binary" "$PARENTDIR\binary"
 
-  CreateDirectory "$PARENTDIR\data"
-  CreateDirectory "$PARENTDIR\Music"
-  CreateDirectory "$PARENTDIR\Sound"
+    CreateDirectory "$PARENTDIR\data"
+    CreateDirectory "$PARENTDIR\Music"
+    CreateDirectory "$PARENTDIR\Sound"
+  ${endIf}
+
 
   RMDir /r "$INSTDIR\client"
 !macroend
