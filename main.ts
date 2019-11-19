@@ -695,7 +695,7 @@ const downloadGzipFileTo = (path1,saveAs,size,onSuccess,onError,onProgress) =>
   }
   catch(ex)
   {
-    onError(ex);
+    onError(JSON.stringify(ex));
   }
 
 }
