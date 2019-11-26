@@ -54,8 +54,8 @@ export class HomeComponent implements OnInit {
       switch(this.interopService.State.State)
       {
         case CurrentState.UPDATING:
-            this.partWidthLeft = Math.min(this.interopService.State.Progress.ProcessedCount / this.interopService.State.Progress.TotalCount * this.widthInPixel * 2,this.widthInPixel);     
-            this.partWidthRight = Math.max((this.interopService.State.Progress.ProcessedCount / this.interopService.State.Progress.TotalCount * this.widthInPixel * 2) - this.widthInPixel,0);
+            this.partWidthLeft = Math.min(this.interopService.State.Progress.ProcessedSize / this.interopService.State.Progress.TotalSize * this.widthInPixel * 2,this.widthInPixel);     
+            this.partWidthRight = Math.max((this.interopService.State.Progress.ProcessedSize / this.interopService.State.Progress.TotalSize * this.widthInPixel * 2) - this.widthInPixel,0);
             this.percentProgress = this.interopService.State.Progress.ProcessedSize / this.interopService.State.Progress.TotalSize * 100
             this.statusMessage = "Updating...";
           break;
