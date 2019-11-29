@@ -101,6 +101,21 @@
         height: 122px;
     }
 
+    .button-maintenance
+    {
+        position: absolute;
+        top: 11px;
+        left: 410px;
+        background-image: url("../assets/maintenance.png");
+        width: 153px;
+        height: 122px;
+
+        &:hover
+        {
+            cursor: default;
+        }
+    }
+
 
     .progress-right
     {

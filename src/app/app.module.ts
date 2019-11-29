@@ -21,7 +21,7 @@ import { HomeComponent } from './home.component';
 import { LoginComponent } from './components/login/login.component';
 import { AuthGuardService } from './guards/auth-guard';
 import { AuthenticationService } from './services/auth.service';
-import { AccountService, API_BASE_URL, GameAccountService } from './services/generated.services';
+import { AccountService, API_BASE_URL, GameAccountService, ServiceStatusService } from './services/generated.services';
 import { JwtInterceptor, JwtHelperService, JwtModule } from '@auth0/angular-jwt';
 import { RegisterComponent } from './components/register/register.component';
 import { IniService } from './services/ini.service';
@@ -35,6 +35,7 @@ import {SlideshowModule} from 'ng-simple-slideshow';
 import { InteropService } from './services/interop.service';
 import { FileSizePipe } from './pipes/file-size.pipe';
 import { DebugComponent } from './components/home/debug/debug.component';
+import { MaintenanceService } from './services/maintenance.service';
 
 // AoT requires an exported function for factories
 export function HttpLoaderFactory(http: HttpClient) {
@@ -43,7 +44,7 @@ export function HttpLoaderFactory(http: HttpClient) {
 
 export class AppConsts
 {
-  static baseUrl = "https://api.euphresia-flyff.com/api"
+  static baseUrl = "https://localhost:44345/api"
 }
 
 export function getBaseUrl() : string {
@@ -99,7 +100,9 @@ export function getToken(): string {
     IniService,
     SelectAccountService,
     ModalService,
-    InteropService
+    InteropService,
+    ServiceStatusService,
+    MaintenanceService
   ],
   bootstrap: [AppComponent]
 })

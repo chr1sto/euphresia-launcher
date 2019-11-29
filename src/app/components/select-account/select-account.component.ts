@@ -90,7 +90,7 @@ export class SelectAccountComponent implements OnInit, OnDestroy {
     {
       this.selectAccService.createAccount(this.createAlias);
       this.createMode = false;
-      this.createAlias = null;
+      this.createAlias = null; 
     }
   }
 

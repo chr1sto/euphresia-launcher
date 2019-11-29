@@ -20,7 +20,7 @@
             </table>
         </div>
         <input class="start" type="button" value="Create New Account" (click)="openCreateMode()">
-        <input class="start" type="button" value="START" (click)="startGame()">
+        <input *ngIf="this.selectAccService.selectedAccountId" class="start" type="button" value="START" (click)="startGame()">
     </div>
     <div class="content" *ngIf="createMode">
         <h1 class="title">Create an Account</h1>

@@ -84,7 +84,7 @@ autoUpdater.logger = electronLog;
 let configEntries : any = null;
 
 const serverRoot = 'https://patch.euphresia-flyff.com/';
-const localClientPath = path.resolve(path.dirname(app.getPath('exe')),'..\\Client\\') + '\\';//'F:\\Games\\Euphresia FlyFF - Beta\\'//
+const localClientPath = 'F:\\Games\\Euphresia FlyFF - Beta\\'//path.resolve(path.dirname(app.getPath('exe')),'..\\Client\\') + '\\';
 const tempExecPath = path.join(path.resolve(localClientPath),'binary\\Euphresia.exe');
 const appdata = path.join(process.env.LOCALAPPDATA,'Euphresia\\Flyff\\');
 const iniPath = path.join(appdata,'Euphresia.ini');
