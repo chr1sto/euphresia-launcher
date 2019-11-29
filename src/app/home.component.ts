@@ -8,6 +8,7 @@ import { InteropService } from './services/interop.service';
 import { CommandType } from './models/app-commands';
 import { CurrentState } from './models/app-state';
 import { MaintenanceService } from './services/maintenance.service';
+import { AuthenticationService } from './services/auth.service';
 
 @Component({
   selector: 'app-home',
@@ -46,7 +47,8 @@ export class HomeComponent implements OnInit {
     private ref: ChangeDetectorRef,
     public configService : IniService,
     public selectAccService : SelectAccountService,
-    public maintenanceService : MaintenanceService) { 
+    public maintenanceService : MaintenanceService,
+    public authenticationService : AuthenticationService) { 
 
       this.selectAccService.updateGameAccounts();
     }
@@ -157,7 +159,7 @@ export class HomeComponent implements OnInit {
       switch(+this.interopService.State.State)
       {
         case CurrentState.UP_TO_DATE:
-          if(this.maintenanceService.maintenance)
+          if(this.maintenanceService.maintenance && !this.authenticationService.isAdmin())
           {
             return 'button-maintenance';
           }
@@ -185,7 +187,7 @@ export class HomeComponent implements OnInit {
     switch(+this.interopService.State.State)
     {
       case CurrentState.UP_TO_DATE:
-        if(!this.maintenanceService.maintenance) this.startGame();
+        if(!this.maintenanceService.maintenance || this.authenticationService.isAdmin()) this.startGame();
         break;
       case CurrentState.UPDATE_AVAILABLE:
         this.startPatchProcess();
