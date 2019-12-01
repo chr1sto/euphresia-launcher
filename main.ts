@@ -10,6 +10,9 @@ import * as child_process from 'child_process'
 import { autoUpdater } from "electron-updater"
 import * as electronLog from 'electron-log'
 import * as progress from 'request-progress'
+import * as dns from 'dns';
+import { async } from '@angular/core/testing';
+import {promisify } from 'util';
 
 export enum CurrentState
 {
@@ -83,12 +86,35 @@ autoUpdater.logger = electronLog;
 
 let configEntries : any = null;
 
-const serverRoot = 'https://patch.euphresia-flyff.com/';
-const localClientPath = 'F:\\Games\\Euphresia FlyFF - Beta\\'//path.resolve(path.dirname(app.getPath('exe')),'..\\Client\\') + '\\';
+const getIP = (host) => {
+  dns.resolve(host,(err,addresses : any) => {
+    if(err)
+    {
+      console.log(err);
+      notifyError('DNS query for host ' +  host + ' failed.\n\nCode:'+err.code+'\nMessage'+err.message);
+    }
+    else
+    {
+      serverIP = addresses[0];
+      console.log(serverIP);
+      serverRoot = 'http://'+serverIP+'/';
+    }
+  });
+}
+
+
+const host = 'patch.euphresia-flyff.com';
+
+var serverIP;
+getIP(host);
+var serverRoot;
+const localClientPath = path.resolve(path.dirname(app.getPath('exe')),'..\\Client\\') + '\\';
 const tempExecPath = path.join(path.resolve(localClientPath),'binary\\Euphresia.exe');
 const appdata = path.join(process.env.LOCALAPPDATA,'Euphresia\\Flyff\\');
 const iniPath = path.join(appdata,'Euphresia.ini');
 const patchConfigPath = path.join(appdata,'EuphresiaLauncher.ini');
+
+
 
 var progressReportLast = new Date();
 
@@ -685,7 +711,11 @@ const downloadGzipFileTo = (path1,saveAs,size,onSuccess,onError,onProgress) =>
     })).on('progress', (state) => {
       onProgress(0,state.speed);
     }).on('error', (error) => {
-      return onError('Unable to retrieve file from' + path1 + '.\n\n' + error);
+      if(error.connect)
+      {
+        return onError('Unable to retrieve file from' + path1 + '. Could not connect to server.\n\n' + error);
+      }
+
     }).on('end', () => {
       console.log(path1);
     })

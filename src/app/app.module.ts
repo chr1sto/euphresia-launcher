@@ -44,7 +44,7 @@ export function HttpLoaderFactory(http: HttpClient) {
 
 export class AppConsts
 {
-  static baseUrl = "https://localhost:44345/api"
+  static baseUrl = "https://api.euphresia-flyff.com/api"
 }
 
 export function getBaseUrl() : string {
