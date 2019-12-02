@@ -714,7 +714,7 @@ const downloadGzipFileTo = (path1,saveAs,size,onSuccess,onError,onProgress,errCo
     })).on('progress', (state) => {
       onProgress(0,state.speed);
     }).on('error', (error) => {
-      if(errCount < 5)
+      if(errCount < 10)
       {
         setTimeout(() => {
           return downloadGzipFileTo(path1,saveAs,size,onSuccess,onError,onProgress,errCount+1)
