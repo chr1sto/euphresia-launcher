@@ -280,7 +280,8 @@ const checkForAvailablePatches = () =>
         (error) => console.log('err' + error))
       },
       () => console.log('error'),
-      (progress,speed) => true)
+      (progress,speed) => true,
+      0)
 }
 
 /*************************************************
@@ -349,7 +350,8 @@ const startDownloadProcess = () =>
       () => console.log('error'),
       (progress,speed) => {
         true;
-      });
+      },
+      0);
 }
 
 /*************************************************
@@ -607,7 +609,8 @@ const dlSingle = (index,updateFileCount,onSuccess,onProgress) =>
     updateFileCount();
     error = true;
   },
-  onProgress);
+  onProgress,
+  0);
 }
 
 var totalFileSize = 0;
@@ -680,7 +683,7 @@ const processPatchList = (path,onFinished,onError) => {
 
 var fileSizeProgress : number = 0;
 
-const downloadGzipFileTo = (path1,saveAs,size,onSuccess,onError,onProgress) =>
+const downloadGzipFileTo = (path1,saveAs,size,onSuccess,onError,onProgress,errCount) =>
 {
   APP_STATE.Progress.CurrentFile = saveAs;
   console.log(path1,saveAs);
@@ -711,11 +714,22 @@ const downloadGzipFileTo = (path1,saveAs,size,onSuccess,onError,onProgress) =>
     })).on('progress', (state) => {
       onProgress(0,state.speed);
     }).on('error', (error) => {
+      if(errCount < 5)
+      {
+        setTimeout(() => {
+          return downloadGzipFileTo(path1,saveAs,size,onSuccess,onError,onProgress,errCount+1)
+        },1000);
+      }
+      else
+      {
+        return onError('Unable to retrieve file from' + path1 + ' .\n\n' + error);
+      }
+      /*
       if(error.connect)
       {
         return onError('Unable to retrieve file from' + path1 + '. Could not connect to server.\n\n' + error);
       }
-
+      */
     }).on('end', () => {
       console.log(path1);
     })
