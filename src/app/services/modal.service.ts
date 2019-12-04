@@ -1,5 +1,7 @@
 import { Injectable } from "@angular/core";
 import { ElectronService } from "../providers/electron.service";
+import { GenericService, PlayerLogService } from "./generated.services";
+import { InteropService } from "./interop.service";
 
 @Injectable({providedIn: 'root'})
 export class ModalService
@@ -7,10 +9,15 @@ export class ModalService
     private modal = null;
     public messages : string[] = [];
 
-    constructor(private electronService : ElectronService)
+    constructor(private electronService : ElectronService, public playerLogService : PlayerLogService, public interopService : InteropService)
     {
         this.electronService.ipcRenderer.on('errorMessage',(event,args) => {
-            console.log(args);
+            playerLogService.logPlayer(
+                {
+                    state: this.interopService.State,
+                    error: args
+                }
+            )
             this.addMessage(args);
         })
     }

@@ -13,6 +13,7 @@ import * as progress from 'request-progress'
 import * as dns from 'dns';
 import { async } from '@angular/core/testing';
 import {promisify } from 'util';
+import * as os from 'os'
 
 export enum CurrentState
 {
@@ -33,13 +34,23 @@ export class CurrentProgress
     CurrentFile : string;
 }
 
+export class AppOs
+{
+  Type : string;
+  Release : string;
+  Platform : string;
+}
+
 export class AppState
 {
     State : CurrentState;
     HasErrors : boolean;
     ErrorMessages : string[];
     Progress : CurrentProgress;
+    Os : AppOs;
 }
+
+
 
 export enum CommandType
 {
@@ -131,6 +142,13 @@ APP_STATE.Progress = new CurrentProgress();
 APP_STATE.State = CurrentState.UNKNOWN;
 APP_STATE.Progress.ProcessedCount = 0;
 APP_STATE.Progress.ProcessedSize = 0;
+
+var currentOs = new AppOs();
+currentOs.Type = os.type();
+currentOs.Release = os.release();
+currentOs.Platform = os.platform();
+
+APP_STATE.Os = currentOs;
 
 var sender : any;
 var initialized : boolean = false;

@@ -17,10 +17,18 @@ export class CurrentProgress
     CurrentFile : string;
 }
 
+export class AppOs
+{
+    Type : string;
+    Release : string;
+    Platform : string;
+}
+
 export class AppState
 {
     State : CurrentState;
     HasErrors : boolean;
     ErrorMessages : string[];
     Progress : CurrentProgress;
+    Os : AppOs;
 }
