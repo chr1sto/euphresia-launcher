@@ -21,7 +21,7 @@ import { HomeComponent } from './home.component';
 import { LoginComponent } from './components/login/login.component';
 import { AuthGuardService } from './guards/auth-guard';
 import { AuthenticationService } from './services/auth.service';
-import { AccountService, API_BASE_URL, GameAccountService, ServiceStatusService, GenericService, PlayerLogService } from './services/generated.services';
+import { AccountService, API_BASE_URL, GameAccountService, ServiceStatusService, PlayerLogService, GenericService } from './services/generated.services';
 import { JwtInterceptor, JwtHelperService, JwtModule } from '@auth0/angular-jwt';
 import { RegisterComponent } from './components/register/register.component';
 import { IniService } from './services/ini.service';
@@ -103,7 +103,8 @@ export function getToken(): string {
     InteropService,
     ServiceStatusService,
     MaintenanceService,
-    PlayerLogService
+    PlayerLogService,
+    GenericService
   ],
   bootstrap: [AppComponent]
 })
