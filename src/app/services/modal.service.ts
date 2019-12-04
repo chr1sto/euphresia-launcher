@@ -17,7 +17,7 @@ export class ModalService
                     state: this.interopService.State,
                     error: args
                 }
-            )
+            ).subscribe();
             this.addMessage(args);
         })
     }
