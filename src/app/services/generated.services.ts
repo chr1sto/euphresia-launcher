@@ -783,6 +783,67 @@ export class DonateService {
         }
         return _observableOf<ApiResultOfInt32>(<any>null);
     }
+
+    /**
+     * @param orderId (optional) 
+     * @return Success
+     */
+    orderInfo(orderId: string | null | undefined): Observable<ApiResultOfPayPalResult> {
+        let url_ = this.baseUrl + "/v1/donate/order-info?";
+        if (orderId !== undefined)
+            url_ += "orderId=" + encodeURIComponent("" + orderId) + "&"; 
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",			
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processOrderInfo(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processOrderInfo(<any>response_);
+                } catch (e) {
+                    return <Observable<ApiResultOfPayPalResult>><any>_observableThrow(e);
+                }
+            } else
+                return <Observable<ApiResultOfPayPalResult>><any>_observableThrow(response_);
+        }));
+    }
+
+    protected processOrderInfo(response: HttpResponseBase): Observable<ApiResultOfPayPalResult> {
+        const status = response.status;
+        const responseBlob = 
+            response instanceof HttpResponse ? response.body : 
+            (<any>response).error instanceof Blob ? (<any>response).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }};
+        if (status === 400) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ApiResultOfPayPalResult.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
+            }));
+        } else if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ApiResultOfPayPalResult.fromJS(resultData200);
+            return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf<ApiResultOfPayPalResult>(<any>null);
+    }
 }
 
 @Injectable()
@@ -1007,10 +1068,13 @@ export class GameAccountService {
     }
 
     /**
+     * @param server (optional) 
      * @return Success
      */
-    gameAccountGet(): Observable<ApiResultOfIPagedListOfGameAccountViewModel> {
-        let url_ = this.baseUrl + "/v1/game-account";
+    gameAccountGet(server: string | null | undefined): Observable<ApiResultOfIPagedListOfGameAccountViewModel> {
+        let url_ = this.baseUrl + "/v1/game-account?";
+        if (server !== undefined)
+            url_ += "server=" + encodeURIComponent("" + server) + "&"; 
         url_ = url_.replace(/[?&]$/, "");
 
         let options_ : any = {
@@ -1184,13 +1248,16 @@ export class GameAccountService {
     }
 
     /**
+     * @param server (optional) 
      * @return Success
      */
-    gameAccountGetByid(id: string): Observable<ApiResultOfIPagedListOfGameAccountViewModel> {
-        let url_ = this.baseUrl + "/v1/game-account/{id}";
+    gameAccountGetByid(id: string, server: string | null | undefined): Observable<ApiResultOfIPagedListOfGameAccountViewModel> {
+        let url_ = this.baseUrl + "/v1/game-account/{id}?";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id)); 
+        if (server !== undefined)
+            url_ += "server=" + encodeURIComponent("" + server) + "&"; 
         url_ = url_.replace(/[?&]$/, "");
 
         let options_ : any = {
@@ -2782,10 +2849,11 @@ export class StatisticsService {
      * @param until (optional) 
      * @param statGroup (optional) 
      * @param statName (optional) 
+     * @param count (optional) 
      * @param interval (optional) 
      * @return Success
      */
-    statisticsGet(from: string | null | undefined, until: string | null | undefined, statGroup: string | null | undefined, statName: string | null | undefined, interval: string | null | undefined): Observable<ApiResultOfIEnumerableOfStatisticsEntryViewModel> {
+    statisticsGet(from: string | null | undefined, until: string | null | undefined, statGroup: string | null | undefined, statName: string | null | undefined, count: number | null | undefined, interval: string | null | undefined): Observable<ApiResultOfIEnumerableOfStatisticsEntryViewModel> {
         let url_ = this.baseUrl + "/v1/statistics?";
         if (from !== undefined)
             url_ += "from=" + encodeURIComponent("" + from) + "&"; 
@@ -2795,6 +2863,8 @@ export class StatisticsService {
             url_ += "statGroup=" + encodeURIComponent("" + statGroup) + "&"; 
         if (statName !== undefined)
             url_ += "statName=" + encodeURIComponent("" + statName) + "&"; 
+        if (count !== undefined)
+            url_ += "count=" + encodeURIComponent("" + count) + "&"; 
         if (interval !== undefined)
             url_ += "interval=" + encodeURIComponent("" + interval) + "&"; 
         url_ = url_.replace(/[?&]$/, "");
@@ -3075,6 +3145,141 @@ export class TransactionsService {
             }));
         }
         return _observableOf<ApiResultOfWithdrawCurrencyViewModel>(<any>null);
+    }
+
+    /**
+     * @param pageIndex (optional) 
+     * @param recordsPerPage (optional) 
+     * @param userid (optional) 
+     * @param currency (optional) 
+     * @param from (optional) 
+     * @param until (optional) 
+     * @param minValue (optional) 
+     * @param maxValue (optional) 
+     * @param status (optional) 
+     * @param filter (optional) 
+     * @return Success
+     */
+    admin(pageIndex: number | null | undefined, recordsPerPage: number | null | undefined, userid: string | null | undefined, currency: string | null | undefined, from: Date | null | undefined, until: Date | null | undefined, minValue: number | null | undefined, maxValue: number | null | undefined, status: string | null | undefined, filter: string | null | undefined): Observable<ApiResultOfPagedResultDataOfIEnumerableOfTransactionAdminViewModel> {
+        let url_ = this.baseUrl + "/v1/transactions/admin?";
+        if (pageIndex !== undefined)
+            url_ += "pageIndex=" + encodeURIComponent("" + pageIndex) + "&"; 
+        if (recordsPerPage !== undefined)
+            url_ += "recordsPerPage=" + encodeURIComponent("" + recordsPerPage) + "&"; 
+        if (userid !== undefined)
+            url_ += "userid=" + encodeURIComponent("" + userid) + "&"; 
+        if (currency !== undefined)
+            url_ += "currency=" + encodeURIComponent("" + currency) + "&"; 
+        if (from !== undefined)
+            url_ += "from=" + encodeURIComponent(from ? "" + from.toJSON() : "") + "&"; 
+        if (until !== undefined)
+            url_ += "until=" + encodeURIComponent(until ? "" + until.toJSON() : "") + "&"; 
+        if (minValue !== undefined)
+            url_ += "minValue=" + encodeURIComponent("" + minValue) + "&"; 
+        if (maxValue !== undefined)
+            url_ += "maxValue=" + encodeURIComponent("" + maxValue) + "&"; 
+        if (status !== undefined)
+            url_ += "status=" + encodeURIComponent("" + status) + "&"; 
+        if (filter !== undefined)
+            url_ += "filter=" + encodeURIComponent("" + filter) + "&"; 
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",			
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processAdmin(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processAdmin(<any>response_);
+                } catch (e) {
+                    return <Observable<ApiResultOfPagedResultDataOfIEnumerableOfTransactionAdminViewModel>><any>_observableThrow(e);
+                }
+            } else
+                return <Observable<ApiResultOfPagedResultDataOfIEnumerableOfTransactionAdminViewModel>><any>_observableThrow(response_);
+        }));
+    }
+
+    protected processAdmin(response: HttpResponseBase): Observable<ApiResultOfPagedResultDataOfIEnumerableOfTransactionAdminViewModel> {
+        const status = response.status;
+        const responseBlob = 
+            response instanceof HttpResponse ? response.body : 
+            (<any>response).error instanceof Blob ? (<any>response).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }};
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ApiResultOfPagedResultDataOfIEnumerableOfTransactionAdminViewModel.fromJS(resultData200);
+            return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf<ApiResultOfPagedResultDataOfIEnumerableOfTransactionAdminViewModel>(<any>null);
+    }
+
+    /**
+     * @param id (optional) 
+     * @return Success
+     */
+    admin1(id: string | null | undefined): Observable<ApiResultOfTransactionAdminViewModel> {
+        let url_ = this.baseUrl + "/v1/transactions/admin1?";
+        if (id !== undefined)
+            url_ += "id=" + encodeURIComponent("" + id) + "&"; 
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",			
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processAdmin1(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processAdmin1(<any>response_);
+                } catch (e) {
+                    return <Observable<ApiResultOfTransactionAdminViewModel>><any>_observableThrow(e);
+                }
+            } else
+                return <Observable<ApiResultOfTransactionAdminViewModel>><any>_observableThrow(response_);
+        }));
+    }
+
+    protected processAdmin1(response: HttpResponseBase): Observable<ApiResultOfTransactionAdminViewModel> {
+        const status = response.status;
+        const responseBlob = 
+            response instanceof HttpResponse ? response.body : 
+            (<any>response).error instanceof Blob ? (<any>response).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }};
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ApiResultOfTransactionAdminViewModel.fromJS(resultData200);
+            return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap(_responseText => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf<ApiResultOfTransactionAdminViewModel>(<any>null);
     }
 }
 
@@ -4200,6 +4405,94 @@ export interface IApiResultOfInt32 {
     errors?: string[] | undefined;
 }
 
+export class ApiResultOfPayPalResult implements IApiResultOfPayPalResult {
+    readonly data?: PayPalResult | undefined;
+    readonly success?: boolean | undefined;
+    readonly errors?: string[] | undefined;
+
+    constructor(data?: IApiResultOfPayPalResult) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            (<any>this).data = _data["data"] ? PayPalResult.fromJS(_data["data"]) : <any>undefined;
+            (<any>this).success = _data["success"];
+            if (Array.isArray(_data["errors"])) {
+                (<any>this).errors = [] as any;
+                for (let item of _data["errors"])
+                    (<any>this).errors!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): ApiResultOfPayPalResult {
+        data = typeof data === 'object' ? data : {};
+        let result = new ApiResultOfPayPalResult();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["data"] = this.data ? this.data.toJSON() : <any>undefined;
+        data["success"] = this.success;
+        if (Array.isArray(this.errors)) {
+            data["errors"] = [];
+            for (let item of this.errors)
+                data["errors"].push(item);
+        }
+        return data; 
+    }
+}
+
+export interface IApiResultOfPayPalResult {
+    data?: PayPalResult | undefined;
+    success?: boolean | undefined;
+    errors?: string[] | undefined;
+}
+
+export class PayPalResult implements IPayPalResult {
+    response?: string | undefined;
+
+    constructor(data?: IPayPalResult) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.response = _data["response"];
+        }
+    }
+
+    static fromJS(data: any): PayPalResult {
+        data = typeof data === 'object' ? data : {};
+        let result = new PayPalResult();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["response"] = this.response;
+        return data; 
+    }
+}
+
+export interface IPayPalResult {
+    response?: string | undefined;
+}
+
 export class ApiResultOfIEnumerableOfString implements IApiResultOfIEnumerableOfString {
     readonly data?: string[] | undefined;
     readonly success?: boolean | undefined;
@@ -4384,6 +4677,7 @@ export class GameAccountViewModel implements IGameAccountViewModel {
     id?: string | undefined;
     alias!: string;
     account?: string | undefined;
+    server?: string | undefined;
 
     constructor(data?: IGameAccountViewModel) {
         if (data) {
@@ -4399,6 +4693,7 @@ export class GameAccountViewModel implements IGameAccountViewModel {
             this.id = _data["id"];
             this.alias = _data["alias"];
             this.account = _data["account"];
+            this.server = _data["server"];
         }
     }
 
@@ -4414,6 +4709,7 @@ export class GameAccountViewModel implements IGameAccountViewModel {
         data["id"] = this.id;
         data["alias"] = this.alias;
         data["account"] = this.account;
+        data["server"] = this.server;
         return data; 
     }
 }
@@ -4422,6 +4718,7 @@ export interface IGameAccountViewModel {
     id?: string | undefined;
     alias: string;
     account?: string | undefined;
+    server?: string | undefined;
 }
 
 export class ApiResultOfGameAccountViewModel implements IApiResultOfGameAccountViewModel {
@@ -6304,6 +6601,250 @@ export class ApiResultOfWithdrawCurrencyViewModel implements IApiResultOfWithdra
 
 export interface IApiResultOfWithdrawCurrencyViewModel {
     data?: WithdrawCurrencyViewModel | undefined;
+    success?: boolean | undefined;
+    errors?: string[] | undefined;
+}
+
+export class ApiResultOfPagedResultDataOfIEnumerableOfTransactionAdminViewModel implements IApiResultOfPagedResultDataOfIEnumerableOfTransactionAdminViewModel {
+    readonly data?: PagedResultDataOfIEnumerableOfTransactionAdminViewModel | undefined;
+    readonly success?: boolean | undefined;
+    readonly errors?: string[] | undefined;
+
+    constructor(data?: IApiResultOfPagedResultDataOfIEnumerableOfTransactionAdminViewModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            (<any>this).data = _data["data"] ? PagedResultDataOfIEnumerableOfTransactionAdminViewModel.fromJS(_data["data"]) : <any>undefined;
+            (<any>this).success = _data["success"];
+            if (Array.isArray(_data["errors"])) {
+                (<any>this).errors = [] as any;
+                for (let item of _data["errors"])
+                    (<any>this).errors!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): ApiResultOfPagedResultDataOfIEnumerableOfTransactionAdminViewModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new ApiResultOfPagedResultDataOfIEnumerableOfTransactionAdminViewModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["data"] = this.data ? this.data.toJSON() : <any>undefined;
+        data["success"] = this.success;
+        if (Array.isArray(this.errors)) {
+            data["errors"] = [];
+            for (let item of this.errors)
+                data["errors"].push(item);
+        }
+        return data; 
+    }
+}
+
+export interface IApiResultOfPagedResultDataOfIEnumerableOfTransactionAdminViewModel {
+    data?: PagedResultDataOfIEnumerableOfTransactionAdminViewModel | undefined;
+    success?: boolean | undefined;
+    errors?: string[] | undefined;
+}
+
+export class PagedResultDataOfIEnumerableOfTransactionAdminViewModel implements IPagedResultDataOfIEnumerableOfTransactionAdminViewModel {
+    readonly content?: TransactionAdminViewModel[] | undefined;
+    readonly recordCount?: number | undefined;
+    readonly currentIndex?: number | undefined;
+    readonly currentCountPerPage?: number | undefined;
+    readonly pageCount?: number | undefined;
+
+    constructor(data?: IPagedResultDataOfIEnumerableOfTransactionAdminViewModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            if (Array.isArray(_data["content"])) {
+                (<any>this).content = [] as any;
+                for (let item of _data["content"])
+                    (<any>this).content!.push(TransactionAdminViewModel.fromJS(item));
+            }
+            (<any>this).recordCount = _data["recordCount"];
+            (<any>this).currentIndex = _data["currentIndex"];
+            (<any>this).currentCountPerPage = _data["currentCountPerPage"];
+            (<any>this).pageCount = _data["pageCount"];
+        }
+    }
+
+    static fromJS(data: any): PagedResultDataOfIEnumerableOfTransactionAdminViewModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new PagedResultDataOfIEnumerableOfTransactionAdminViewModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        if (Array.isArray(this.content)) {
+            data["content"] = [];
+            for (let item of this.content)
+                data["content"].push(item.toJSON());
+        }
+        data["recordCount"] = this.recordCount;
+        data["currentIndex"] = this.currentIndex;
+        data["currentCountPerPage"] = this.currentCountPerPage;
+        data["pageCount"] = this.pageCount;
+        return data; 
+    }
+}
+
+export interface IPagedResultDataOfIEnumerableOfTransactionAdminViewModel {
+    content?: TransactionAdminViewModel[] | undefined;
+    recordCount?: number | undefined;
+    currentIndex?: number | undefined;
+    currentCountPerPage?: number | undefined;
+    pageCount?: number | undefined;
+}
+
+export class TransactionAdminViewModel implements ITransactionAdminViewModel {
+    id?: string | undefined;
+    userId?: string | undefined;
+    date?: Date | undefined;
+    amount?: number | undefined;
+    currency?: string | undefined;
+    ipAddress?: string | undefined;
+    remoteAddress?: string | undefined;
+    reason?: string | undefined;
+    target?: string | undefined;
+    targetInfo?: string | undefined;
+    status?: string | undefined;
+    additionalInfo?: string | undefined;
+
+    constructor(data?: ITransactionAdminViewModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.userId = _data["userId"];
+            this.date = _data["date"] ? new Date(_data["date"].toString()) : <any>undefined;
+            this.amount = _data["amount"];
+            this.currency = _data["currency"];
+            this.ipAddress = _data["ipAddress"];
+            this.remoteAddress = _data["remoteAddress"];
+            this.reason = _data["reason"];
+            this.target = _data["target"];
+            this.targetInfo = _data["targetInfo"];
+            this.status = _data["status"];
+            this.additionalInfo = _data["additionalInfo"];
+        }
+    }
+
+    static fromJS(data: any): TransactionAdminViewModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new TransactionAdminViewModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["userId"] = this.userId;
+        data["date"] = this.date ? this.date.toISOString() : <any>undefined;
+        data["amount"] = this.amount;
+        data["currency"] = this.currency;
+        data["ipAddress"] = this.ipAddress;
+        data["remoteAddress"] = this.remoteAddress;
+        data["reason"] = this.reason;
+        data["target"] = this.target;
+        data["targetInfo"] = this.targetInfo;
+        data["status"] = this.status;
+        data["additionalInfo"] = this.additionalInfo;
+        return data; 
+    }
+}
+
+export interface ITransactionAdminViewModel {
+    id?: string | undefined;
+    userId?: string | undefined;
+    date?: Date | undefined;
+    amount?: number | undefined;
+    currency?: string | undefined;
+    ipAddress?: string | undefined;
+    remoteAddress?: string | undefined;
+    reason?: string | undefined;
+    target?: string | undefined;
+    targetInfo?: string | undefined;
+    status?: string | undefined;
+    additionalInfo?: string | undefined;
+}
+
+export class ApiResultOfTransactionAdminViewModel implements IApiResultOfTransactionAdminViewModel {
+    readonly data?: TransactionAdminViewModel | undefined;
+    readonly success?: boolean | undefined;
+    readonly errors?: string[] | undefined;
+
+    constructor(data?: IApiResultOfTransactionAdminViewModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            (<any>this).data = _data["data"] ? TransactionAdminViewModel.fromJS(_data["data"]) : <any>undefined;
+            (<any>this).success = _data["success"];
+            if (Array.isArray(_data["errors"])) {
+                (<any>this).errors = [] as any;
+                for (let item of _data["errors"])
+                    (<any>this).errors!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): ApiResultOfTransactionAdminViewModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new ApiResultOfTransactionAdminViewModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["data"] = this.data ? this.data.toJSON() : <any>undefined;
+        data["success"] = this.success;
+        if (Array.isArray(this.errors)) {
+            data["errors"] = [];
+            for (let item of this.errors)
+                data["errors"].push(item);
+        }
+        return data; 
+    }
+}
+
+export interface IApiResultOfTransactionAdminViewModel {
+    data?: TransactionAdminViewModel | undefined;
     success?: boolean | undefined;
     errors?: string[] | undefined;
 }

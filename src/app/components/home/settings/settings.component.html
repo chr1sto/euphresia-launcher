@@ -103,13 +103,29 @@
                 </label>
             </td>
         </tr>
+        <tr>
+            <td class="first">
+                Server
+            </td>
+            <td>
+                <div class="select-wrapper">
+                    <select [(ngModel)]="configService.environment" id="environment" (change)="configChanged()">
+                        <option value="LIVE">Live</option>
+                        <option value="PBE">Test Server</option>
+                    </select>
+                </div>
+            </td>
+        </tr>
         <!--
         <tr>
             <td class="first">
                 Auto Update
             </td>
             <td class="second">
-                <input [(ngModel)]="configService.autoUpdate" type="checkbox" id="auto-update" (change)="configChanged()">
+                <label class="container">
+                    <input [(ngModel)]="configService.autoUpdate" type="checkbox" id="auto-update" (change)="configChanged()">
+                    <span class="checkmark"></span>
+                </label>
             </td>
         </tr>
         -->

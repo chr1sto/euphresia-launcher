@@ -4,7 +4,7 @@ import { map } from 'rxjs/operators';
 import { SelectAccountService } from '../../services/select-account.service';
 import { ElectronService } from '../../providers/electron.service';
 import { InteropService } from '../../services/interop.service';
-import { CommandType } from '../../models/app-commands';
+import { CommandType } from '../../../../patcher/models';
 
 @Component({
   selector: 'select-account',

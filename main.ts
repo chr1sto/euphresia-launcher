@@ -10,83 +10,24 @@ import * as child_process from 'child_process'
 import { autoUpdater } from "electron-updater"
 import * as electronLog from 'electron-log'
 import * as progress from 'request-progress'
-import * as dns from 'dns';
-import { async } from '@angular/core/testing';
-import {promisify } from 'util';
 import * as os from 'os'
-
-export enum CurrentState
-{
-    UNKNOWN,
-    CHECKING_FOR_UPDATE,
-    UPDATE_AVAILABLE,
-    UP_TO_DATE,
-    UPDATING
-}
-
-export class CurrentProgress
-{
-    TotalCount : number;
-    ProcessedCount : number;
-    TotalSize : number;
-    ProcessedSize : number;
-    DownloadSpeed : number;
-    CurrentFile : string;
-}
-
-export class AppOs
-{
-  Type : string;
-  Release : string;
-  Platform : string;
-}
-
-export class AppState
-{
-    State : CurrentState;
-    HasErrors : boolean;
-    ErrorMessages : string[];
-    Progress : CurrentProgress;
-    Os : AppOs;
-}
+import * as checkDiskSpace from 'check-disk-space';
+import { EuphresiaEnvironment, AppState, PatchEntry, CurrentProgress, CurrentState, AppOs, CommandType, AppCommand, ProgressEntry } from './patcher/models';
+import { Downloader, } from './patcher/downloader';
+import { PatchlistProcessor } from './patcher/patchListProcessor';
+const async = require('async');
 
 
 
-export enum CommandType
-{
-    INIT,
-    CHECK_FOR_UPDATES,
-    START_PATCH,
-    STOP_PATCH,
-    START_GAME,
-    SET_TOKEN,
-    SET_SELECTED_ACCOUNT,
-    OPEN_WEB
-}
+var mEnvironments : { [id: string] : EuphresiaEnvironment; } = {}
+/*
+mEnvironments["LIVE"] = { PatchRoot: 'http://patch.euphresia-flyff.com/', ClientPath: path.resolve(path.dirname(app.getPath('exe')),'..\\Client\\') + '\\' }
+mEnvironments["PBE"] = { PatchRoot: 'http://patch.pbe.euphresia-flyff.com/', ClientPath: path.resolve(path.dirname(app.getPath('exe')),'..\\Client_PBE\\') + '\\' }
+*/
+mEnvironments["LIVE"] = { PatchRoot: 'http://patch.euphresia-flyff.com/', ClientPath: 'C:\\Program Files\\Euphresia Flyff\\Client\\' }
+mEnvironments["PBE"] = { PatchRoot: 'http://patch.pbe.euphresia-flyff.com/', ClientPath: 'C:\\Program Files\\Euphresia Flyff\\Client_PBE\\'  }
 
-export class AppCommand
-{
-    Type : CommandType;
-    Params : any[];
-
-    constructor(type : CommandType, params : any[])
-    {
-        this.Type = type;
-        this.Params = params;
-    }
-}
-
-export class PatchEntry
-{
-  Dir : string;
-  Size : number;
-
-  constructor(dir: string, size : number)
-  {
-    this.Dir = dir;
-    this.Size = size;
-  }
-}
+var currentEnvironment = mEnvironments["LIVE"];
 
 let win, serve;
 const args = process.argv.slice(1);
@@ -97,30 +38,6 @@ autoUpdater.logger = electronLog;
 
 let configEntries : any = null;
 
-const getIP = (host) => {
-  dns.resolve(host,(err,addresses : any) => {
-    if(err)
-    {
-      console.log(err);
-      notifyError('DNS query for host ' +  host + ' failed.\n\nCode:'+err.code+'\nMessage'+err.message);
-    }
-    else
-    {
-      serverIP = addresses[0];
-      console.log(serverIP);
-      serverRoot = 'http://'+serverIP+'/';
-    }
-  });
-}
-
-
-const host = 'patch.euphresia-flyff.com';
-
-var serverIP;
-getIP(host);
-var serverRoot;
-const localClientPath = path.resolve(path.dirname(app.getPath('exe')),'..\\Client\\') + '\\';
-const tempExecPath = path.join(path.resolve(localClientPath),'binary\\Euphresia.exe');
 const appdata = path.join(process.env.LOCALAPPDATA,'Euphresia\\Flyff\\');
 const iniPath = path.join(appdata,'Euphresia.ini');
 const patchConfigPath = path.join(appdata,'EuphresiaLauncher.ini');
@@ -152,6 +69,8 @@ APP_STATE.Os = currentOs;
 
 var sender : any;
 var initialized : boolean = false;
+
+var eEnv = 'LIVE';
 
 function createWindow() {
 
@@ -232,6 +151,10 @@ function createWindow() {
         break;
       case CommandType.OPEN_WEB:
         child_process.execSync('start ' + cmd.Params[0]);
+        break;
+      case CommandType.SET_ENVIRONMENT:
+        setEnvironment(cmd.Params[0]);
+        break;
       default:
         break;
     }
@@ -240,10 +163,8 @@ function createWindow() {
 
   //TODO How to implement this?
   ipcMain.on('config-get',(event,arg) =>{
-    console.log('????')
       if(!configEntries)
       {
-        console.log('in');
         loadIni(() => {
           event.sender.send('config',configEntries);
         });
@@ -273,103 +194,114 @@ function createWindow() {
 }
 
 /*************************************************
+ * Set Environment
+ *************************************************/
+
+const setEnvironment = (env : string) => {
+  if(APP_STATE.State == CurrentState.UPDATING)
+  {
+    notifyError('You cannot change the Environment while updating!');
+    return false;
+  }
+  
+  currentEnvironment = mEnvironments[env];
+  checkForAvailablePatches();
+  return true;
+}
+
+/*************************************************
  * Check for Updates
  *************************************************/
 
 const checkForAvailablePatches = () =>
 {      
-    downloadGzipFileTo(
-      serverRoot + 'list.txt.gz',
-      appdata + 'list.txt',
-      0,
-      () => {
-        APP_STATE.State = CurrentState.CHECKING_FOR_UPDATE;
-        processPatchList(appdata + 'list.txt',() => {
-          if(fileList.length > 0)
-          {
-            APP_STATE.State = CurrentState.UPDATE_AVAILABLE;
-            ///TODO?
-            APP_STATE.Progress.TotalSize = totalFileSize;
-          }
-          else{
-            APP_STATE.State = CurrentState.UP_TO_DATE;
-          }
-        },
-        (error) => console.log('err' + error))
-      },
-      () => console.log('error'),
-      (progress,speed) => true,
-      0)
+  APP_STATE.State = CurrentState.CHECKING_FOR_UPDATE;
+  var downloader = new Downloader(6);
+  var patchFilePath = path.join(path.join(process.env.LOCALAPPDATA,'Euphresia','Flyff','list.txt.gz'))
+  downloader.DownloadSingleFile(new PatchEntry(patchFilePath,0,new URL('list.txt.gz',currentEnvironment.PatchRoot))).then(
+    () => {
+      var plp = new PatchlistProcessor(patchFilePath,currentEnvironment.ClientPath,currentEnvironment.PatchRoot);
+      plp.Run().then((result) => {
+        if(result.length > 0)
+        {
+          APP_STATE.State = CurrentState.UPDATE_AVAILABLE;
+          APP_STATE.Progress.TotalSize = plp.TotalFileSize;
+        }
+        else
+        {
+          APP_STATE.State = CurrentState.UP_TO_DATE;
+          APP_STATE.Progress.TotalSize = 0;
+        }
+      })
+    }
+  )
 }
+
 
 /*************************************************
  * Start Download
  *************************************************/
+const getReadableFileSizeString = (fileSizeInBytes) => {
+
+  var i = -1;
+  var byteUnits = [' kb', ' Mb', ' Gb', ' Tb', 'Pb', 'Eb', 'Zb', 'Yb'];
+  do {
+      fileSizeInBytes = fileSizeInBytes / 1024;
+      i++;
+  } while (fileSizeInBytes > 1024);
+
+  return Math.max(fileSizeInBytes, 0.1).toFixed(1) + byteUnits[i];
+  };
 
 const startDownloadProcess = () =>
 {
-  APP_STATE.Progress.ProcessedSize = 0;
-    var currentFile : number = 0;
-    //event.sender.send('status-update','Retrieving Patchlist...');
-    downloadGzipFileTo(
-      serverRoot + 'list.txt.gz',
-      appdata + 'list.txt',
-      0,
-      () => 
-      {
-        //event.sender.send('status-update','Processing Patchlist...');
-        processPatchList(appdata + 'list.txt',() => {
-          if(fileList.length == 0)
-          {
-            APP_STATE.State = CurrentState.UP_TO_DATE;
-          }
-          else
-          {
-            APP_STATE.Progress.TotalCount = fileList.length;
-            APP_STATE.Progress.TotalSize = totalFileSize;
-            APP_STATE.State = CurrentState.UPDATING;
-            //event.sender.send('update-progress',++currentFile)
-            downloadFiles(
-              (i, size) => {
-                APP_STATE.Progress.ProcessedCount += 1;
-                APP_STATE.Progress.ProcessedSize += size;
-                if(APP_STATE.Progress.ProcessedCount >= fileList.length)
-                {
-                  APP_STATE.State = APP_STATE.State = CurrentState.UP_TO_DATE;
-                }
-              },
-              (size) => 
-              {
-                
-              },//event.sender.send('status-update','Finished'),
-              () => {
-                //APP_STATE.Progress.ProcessedCount += 1;
-                /*
-                if(currentFile == fileList.length || currentFile % 10)
-                  event.sender.send('update-progress',currentFile);
-                event.sender.send('status-update','ERROR');
-                */
-              },
-              (progress,speed) => {
-                if(true || (new Date().getSeconds() - progressReportLast.getSeconds()) > 1)
-                {
-                  if(speed && speed > 0)
-                  {
-                    APP_STATE.Progress.DownloadSpeed = speed;
-                  }
-                  APP_STATE.Progress.ProcessedSize += progress;                
-                  progressReportLast = new Date();
-                  console.log("PROGRESS: ",progress);
-                }                
-              })
+  APP_STATE.State = CurrentState.CHECKING_FOR_UPDATE;
+  var downloader = new Downloader(6);
+  var patchFilePath = path.join(path.join(process.env.LOCALAPPDATA,'Euphresia','Flyff','list.txt.gz'))
+  downloader.Progress.on(data => {
+    APP_STATE.Progress.DownloadSpeed = data.Speed;
+    APP_STATE.Progress.ProcessedSize = data.ProgressedSize;
+  });
+  downloader.StatusUpdate.on(err => {
+    if(err)
+    {
+      notifyError(JSON.stringify(err));
+    }
+    else
+    {
+        checkForAvailablePatches();
+    }
+  })
+  downloader.DownloadSingleFile(new PatchEntry(patchFilePath,0,new URL('list.txt.gz',currentEnvironment.PatchRoot))).then(
+    () => {
+      var plp = new PatchlistProcessor(patchFilePath,currentEnvironment.ClientPath,currentEnvironment.PatchRoot);
+      plp.Run().then((result) => {
+        if(result.length > 0)
+        {
+          checkDiskSpace(currentEnvironment.ClientPath).then(diskSpace => {
+            if(diskSpace.free > plp.TotalFileSize)
+            {
+              APP_STATE.State = CurrentState.UPDATING;
+              APP_STATE.Progress.ProcessedSize = 0;
+              APP_STATE.Progress.TotalSize = plp.TotalFileSize;
+              downloader.start(result);
             }
-        },(error) => console.log(error))
-      },
-      () => console.log('error'),
-      (progress,speed) => {
-        true;
-      },
-      0);
+            else
+            {
+              notifyError('There is not enough space on your drive. Please make sure that you have atleast ' +  getReadableFileSizeString(plp.TotalFileSize) + ' of free space on your drive.')
+            }
+          })
+
+        }
+        else
+        {
+          APP_STATE.State = CurrentState.UP_TO_DATE;
+          APP_STATE.Progress.TotalSize = 0;
+          APP_STATE.Progress.ProcessedSize = 0;
+        }
+      })
+    }
+  )  
 }
 
 /*************************************************
@@ -394,7 +326,7 @@ const startGame = (id) =>
       id = id.replace('-','');
       var params = ['127.0.0.1',id,currToken];
       console.log(params.join('\n'));
-      var process : child_process.ChildProcess = child_process.spawn(tempExecPath,params,{detached: true, stdio:['ignore','ignore','ignore'],cwd: localClientPath});//.unref();
+      var process : child_process.ChildProcess = child_process.spawn(path.join(path.resolve(currentEnvironment.ClientPath),'binary','Euphresia.exe'),params,{detached: true, stdio:['ignore','ignore','ignore'],cwd: currentEnvironment.ClientPath});//.unref();
       runningClients.push({ account: id, process: process });
       //TODO
       //event.sender.send('update-client-list',runningClients);
@@ -406,6 +338,7 @@ const startGame = (id) =>
             runningClients.splice(i,1);
           }
         }
+        notifyError(code + '...' + signal);
         ///TODO?
         //event.sender.send('update-client-list',runningClients);
       })
@@ -421,7 +354,17 @@ const updateAppState = () => {
   sender.send('state',APP_STATE);
 }
 
-const notifyError = (message) => win.webContents.send('errorMessage',message);
+const notifyError = (message,silent = false) =>
+{
+  if(silent)
+  {
+    win.webContents.send('errorMessage_silent',message);
+  }
+  else
+  {
+    win.webContents.send('errorMessage',message);
+  }
+} 
 
 let currToken;
 const setToken = (details,callback) =>
@@ -533,27 +476,41 @@ const loadLauncherConfig = (callback) =>
         terminal: false
       });
 
+      var flagEnv = false;
+      var flagAA = false;
+
       rl.on('line',(line) => {
         var params : string[] = line.split(' ');
         if(params.length > 1)
         {
           var name = params.shift();
+          if(name.toUpperCase() == 'ENVIRONMENT')
+          {
+            setEnvironment(params.join(' '));
+            eEnv = params.join(' ');
+            flagEnv = true;
+
+          }
+          if(name.toUpperCase() == 'AUTOUPDATE')
+          {
+            flagAA = true;
+
+          }
+
           configEntries.push({key: name, value: params.join(' ')})
           count++;
         }
       }) 
 
       rl.on('close',() => {
-        if(count == 0)
-        {
-          configEntries.push({key: 'autoupdate', value: '1'});
-          callback();
-        }
+        if(!flagEnv) configEntries.push({key: 'environment', value: 'LIVE'});
+        if(!flagAA) configEntries.push({key: 'autoupdate', value: '1'});
       })
     }
     else
     {
       configEntries.push({key: 'autoupdate', value: '1'});
+      configEntries.push({key: 'environment', value: 'LIVE'});
       callback();
     }
   })
@@ -573,13 +530,16 @@ const writeIni = () => {
       case 'AUTOUPDATE':
         launcherIniContent += "autoupdate " + obj.value + '\r\n';
         break;
+      case 'ENVIRONMENT':
+        launcherIniContent += "environment " + obj.value + '\r\n';
+        if(eEnv != obj.value && setEnvironment(obj.value)) {
+          eEnv = obj.value;
+        }
       default:
         iniContent += obj.key + ' ' + obj.value + '\r\n';
         break;
     }
   }
-
-  console.log(iniContent);
 
   fs.writeFile(iniPath,iniContent,(err) => {
     if(err)
@@ -590,176 +550,6 @@ const writeIni = () => {
     if(err) 
     notifyError('Error while updating ' + patchConfigPath + '.\n\n' + err)
   });
-}
-
-const downloadFiles = (updateFileCount,onSuccess, onError, onProgress) =>
-{
-  console.log(fileList);
-  let index = 0;
-  try
-  {
-    dlSingle(index,updateFileCount,onSuccess,onProgress);
-  }
-  catch
-  {
-    onError();
-  }
-
-  onSuccess();
-}
-
-const dlSingle = (index,updateFileCount,onSuccess,onProgress) =>
-{
-  let file = fileList[index];
-  let url1 = serverRoot + file.Dir.replace('\\','/') + '.gz';
-  let error = false;
-  downloadGzipFileTo(url1,localClientPath + file.Dir, file.Size,() => 
-  { 
-    updateFileCount(1,file.Size)
-    if(index+1 < fileList.length && !error)
-      dlSingle(index+1,updateFileCount,onSuccess,onProgress);
-    else
-      onSuccess();
-  },
-  (err) => 
-  { 
-    notifyError(err)
-    updateFileCount();
-    error = true;
-  },
-  onProgress,
-  0);
-}
-
-var totalFileSize = 0;
-
-const processPatchList = (path,onFinished,onError) => {
-  totalFileSize = 0;
-  var rl = readline.createInterface({
-    input : fs.createReadStream(path),
-    output: process.stdout,
-    terminal: false
-  })
-
-  fileList = new Array<PatchEntry>();
-
-  let folder = '';
-
-  rl.on('line',(line : string) => {
-    if(line[0] === 'v')
-    {
-      //handle patcher update.
-    }
-    else if(line[0] == 'd')
-    {
-      folder = line.substring(2)
-    }
-    else if(line[0] == 'f')
-    {
-      var cols = line.split(' ');
-      var date = new Date(parseInt(cols[1]));
-      var size = parseInt(cols[2]);
-      cols.splice(0,3);
-      var file = cols.join(' ');
-      var fileNotFound = false;
-      var exSize;
-      var exDate;
-
-      try
-      {
-        var path = localClientPath + folder + '\\' + file
-        if(fs.existsSync(path))
-        {
-          var fileInfo = fs.statSync(path);
-          exSize = fileInfo.size;
-          exDate = fileInfo.mtime;
-        }
-        else
-        {
-          fileNotFound = true;
-        }
-      }
-      catch(ex)
-      {
-        console.log('File not found!');
-        fileNotFound = true;
-      }
-
-      if(fileNotFound || exSize != size || exDate < date )
-      {
-        totalFileSize += size;
-        //enqueue Files
-        fileList.push(new PatchEntry(folder + '\\' + file,size));
-      }
-    }
-  })
-
-  rl.on('close',(sum) => {
-    onFinished();
-  })
-}
-
-var fileSizeProgress : number = 0;
-
-const downloadGzipFileTo = (path1,saveAs,size,onSuccess,onError,onProgress,errCount) =>
-{
-  APP_STATE.Progress.CurrentFile = saveAs;
-  console.log(path1,saveAs);
-  try
-  {
-    if(!fs.existsSync(path.dirname(saveAs)))
-    {
-      fs.mkdirSync(path.dirname(saveAs));
-    }
-  
-    const ws = fs.createWriteStream(saveAs)
-  
-    ws.on('error',() => {
-      return onError('Unable to save file ' + saveAs + '.\n Make sure that your launcher is in the same Directory as your Game Client!');
-    })
-
-    ws.on('finish',() => onSuccess(size));
-  
-    const zunlib = zlib.createGunzip();
-
-    var headers = {
-      'Accept-Encoding': 'gzip'
-    };
-
-    progress(request(path1,{
-      headers: headers,
-      method: 'GET'
-    })).on('progress', (state) => {
-      onProgress(0,state.speed);
-    }).on('error', (error) => {
-      if(errCount < 10)
-      {
-        setTimeout(() => {
-          return downloadGzipFileTo(path1,saveAs,size,onSuccess,onError,onProgress,errCount+1)
-        },1000);
-      }
-      else
-      {
-        return onError('Unable to retrieve file from' + path1 + ' .\n\n' + error);
-      }
-      /*
-      if(error.connect)
-      {
-        return onError('Unable to retrieve file from' + path1 + '. Could not connect to server.\n\n' + error);
-      }
-      */
-    }).on('end', () => {
-      console.log(path1);
-    })
-    .pipe(zunlib)
-    .pipe(ws);
-  
-  }
-  catch(ex)
-  {
-    onError(JSON.stringify(ex));
-  }
-
 }
 
 try {

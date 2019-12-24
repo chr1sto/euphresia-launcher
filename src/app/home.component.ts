@@ -1,12 +1,11 @@
 import { Component, OnInit, ChangeDetectorRef, Input } from '@angular/core';
 import { ElectronService } from './providers/electron.service';
-import { GameAccountService, GameAccountViewModel } from './services/generated.services';
+import { GameAccountService, GameAccountViewModel, PlayerLogService } from './services/generated.services';
 import { map } from 'rxjs/operators';
 import { IniService } from './services/ini.service';
 import { SelectAccountService } from './services/select-account.service';
 import { InteropService } from './services/interop.service';
-import { CommandType } from './models/app-commands';
-import { CurrentState } from './models/app-state';
+import { CommandType,CurrentState } from '../../patcher/models';
 import { MaintenanceService } from './services/maintenance.service';
 import { AuthenticationService } from './services/auth.service';
 
@@ -48,11 +47,14 @@ export class HomeComponent implements OnInit {
     public configService : IniService,
     public selectAccService : SelectAccountService,
     public maintenanceService : MaintenanceService,
-    public authenticationService : AuthenticationService) { 
+    public authenticationService : AuthenticationService,
+    public electronService : ElectronService,
+    public playerLogService : PlayerLogService) { 
 
       this.selectAccService.updateGameAccounts();
     }
   ngOnInit() {
+    this.configService.getConfig();
     this.updateBarWidth();
     this.interopService.OnUpdate.subscribe(() => {
       switch(this.interopService.State.State)
@@ -60,7 +62,9 @@ export class HomeComponent implements OnInit {
         case CurrentState.UPDATING:
             this.partWidthLeft = Math.min(this.interopService.State.Progress.ProcessedSize / this.interopService.State.Progress.TotalSize * this.widthInPixel * 2,this.widthInPixel);     
             this.partWidthRight = Math.max((this.interopService.State.Progress.ProcessedSize / this.interopService.State.Progress.TotalSize * this.widthInPixel * 2) - this.widthInPixel,0);
-            this.percentProgress = this.interopService.State.Progress.ProcessedSize / this.interopService.State.Progress.TotalSize * 100
+            this.percentProgress = this.interopService.State.Progress.ProcessedSize / this.interopService.State.Progress.TotalSize * 100;
+            this.totalFileSizeFormatted = this.formatBytes(this.interopService.State.Progress.TotalSize);
+            this.progressFileSizeFormatted = this.formatBytes(this.interopService.State.Progress.ProcessedSize);
             this.statusMessage = "Updating...";
           break;
         case CurrentState.UP_TO_DATE:
@@ -91,6 +95,15 @@ export class HomeComponent implements OnInit {
       this.patch();
     },300000);
     
+
+    this.electronService.ipcRenderer.on('errorMessage_silent',(event,args) => {
+      this.playerLogService.logPlayer(
+          {
+              state: this.interopService.State,
+              error: args
+          }
+      ).subscribe();
+  })
   }
 
 
@@ -183,7 +196,7 @@ export class HomeComponent implements OnInit {
 
   gameButtonClick()
   {    
-
+    console.log('STATE: ',this.interopService.State.State);
     switch(+this.interopService.State.State)
     {
       case CurrentState.UP_TO_DATE:

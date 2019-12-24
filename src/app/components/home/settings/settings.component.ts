@@ -1,6 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef, Input } from '@angular/core';
 import { map } from 'rxjs/operators';
 import { IniService } from '../../../services/ini.service';
+import { InteropService } from '../../../services/interop.service';
 
 @Component({
   selector: 'settings',
@@ -8,7 +9,7 @@ import { IniService } from '../../../services/ini.service';
   styleUrls: ['./settings.component.scss']
 })
 export class SettingsComponent implements OnInit {
-  constructor( public configService : IniService) { 
+  constructor( public configService : IniService, public interopService : InteropService) { 
     }
 
   ngOnInit() {

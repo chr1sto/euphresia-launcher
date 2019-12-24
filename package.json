@@ -86,14 +86,19 @@
   "dependencies": {
     "@auth0/angular-jwt": "^2.1.0",
     "@types/request": "^2.48.1",
+    "async": "^3.1.0",
+    "check-disk-space": "^2.1.0",
     "electron-dl": "^1.14.0",
     "electron-log": "^3.0.8",
     "electron-simple-updater": "^1.5.0",
     "electron-updater": "^4.1.2",
+    "fs-extra": "^8.1.0",
+    "nexline": "^1.1.1",
     "ng-simple-slideshow": "^1.2.9",
     "ngx-smart-modal": "^7.1.1",
     "request": "^2.88.0",
     "request-progress": "^3.0.0",
+    "request-promise": "^4.2.5",
     "zlib": "^1.0.5"
   }
 }

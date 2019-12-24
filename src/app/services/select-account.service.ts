@@ -1,6 +1,7 @@
 import { Injectable } from "@angular/core";
 import { GameAccountViewModel, GameAccountService } from "./generated.services";
 import { map } from "rxjs/operators";
+import { IniService } from "./ini.service";
 
 @Injectable({providedIn: "root"})
 export class SelectAccountService
@@ -12,7 +13,7 @@ export class SelectAccountService
     hasErrors: boolean;
     success: boolean;
     private modal = null;
-    constructor(public gameAccountService : GameAccountService){
+    constructor(public gameAccountService : GameAccountService, public iniService : IniService){
 
     }
 
@@ -22,12 +23,22 @@ export class SelectAccountService
         this.selectedAccountId = acciD;
     }
 
+    compare( a, b ) {
+      if ( a.alias < b.alias ){
+        return -1;
+      }
+      if ( a.alias > b.alias ){
+        return 1;
+      }
+      return 0;
+    }
+
     public updateGameAccounts()
     {
-      this.gameAccountService.gameAccountGet().pipe(
+      this.gameAccountService.gameAccountGet(this.iniService.environment).pipe(
         map(
           result => {
-            this.gameAccounts = result.data;
+            this.gameAccounts = result.data.sort(this.compare);
             if(this.gameAccounts && !this.selectedAccount)
             {
               if(this.gameAccounts.length > 0)
@@ -50,6 +61,7 @@ export class SelectAccountService
         model.alias = alias;
         //workaround;
         model.id = "00000000-0000-0000-0000-000000000000";
+        model.server = this.iniService.environment;
         this.gameAccountService.gameAccountPost(model).pipe(
           map(
             result => {

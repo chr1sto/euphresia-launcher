@@ -1,6 +1,5 @@
 import { Injectable, OnInit, EventEmitter } from "@angular/core";
-import { AppState } from "../models/app-state";
-import { CommandType, AppCommand } from "../models/app-commands";
+import { CommandType, AppCommand,AppState } from "../../../patcher/models";
 import { ElectronService } from "../providers/electron.service";
 import { Subject, BehaviorSubject, Observable } from "rxjs";
 

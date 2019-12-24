@@ -6,7 +6,7 @@ import { JwtHelperService } from '@auth0/angular-jwt';
 import { map } from 'rxjs/operators';
 import { ElectronService } from '../providers/electron.service';
 import { InteropService } from './interop.service';
-import { CommandType } from '../models/app-commands';
+import { CommandType } from '../../../patcher/models';
 
 @Injectable()
 export class AuthenticationService
