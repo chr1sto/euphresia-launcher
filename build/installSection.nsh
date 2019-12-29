@@ -23,10 +23,12 @@
 !macroend
 
 !macro CopyGameFiles
+  Var /GLOBAL PARENTDIR
+  Var /GLOBAL PARENTDIR2
+
+  !insertmacro GetParent
+  ${GetParent} "$INSTDIR" $PARENTDIR
   ${ifNot} ${isUpdated}
-    Var /GLOBAL PARENTDIR
-    !insertmacro GetParent
-    ${GetParent} "$INSTDIR" $PARENTDIR
 
     StrCpy $PARENTDIR "$PARENTDIR\Client"
     CreateDirectory "$PARENTDIR"
@@ -38,6 +40,21 @@
     CreateDirectory "$PARENTDIR\Sound"
   ${endIf}
 
+  ${GetParent} "$INSTDIR" $PARENTDIR2
+  StrCpy $PARENTDIR2 "$PARENTDIR2\Client_PBE"
+  ${If} ${FileExists} "$PARENTDIR2\*.*"
+  ${Else}
+    CreateDirectory "$PARENTDIR2"
+    CreateDirectory "$PARENTDIR2\data"
+    CreateDirectory "$PARENTDIR2\Music"
+    CreateDirectory "$PARENTDIR2\Sound"
+    CreateDirectory "$PARENTDIR2\binary"
+
+    CopyFiles /SILENT "$PARENTDIR\binary" "$PARENTDIR2\binary"
+    CopyFiles /SILENT "$PARENTDIR\data" "$PARENTDIR2\data"
+    CopyFiles /SILENT "$PARENTDIR\Music" "$PARENTDIR2\Music"
+    CopyFiles /SILENT "$PARENTDIR\Sound" "$PARENTDIR2\Sound"
+  ${EndIf}
 
   RMDir /r "$INSTDIR\client"
 !macroend

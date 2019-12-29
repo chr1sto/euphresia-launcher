@@ -30,6 +30,7 @@ export class HomeComponent implements OnInit {
   checkedForUpdates: boolean = false;
   upToDate: boolean = false;
   percentProgress : number = 0;
+  eta : string = '';
 
   totalFileSize : number = 0;
   progressFileSize : number = 0;
@@ -65,6 +66,9 @@ export class HomeComponent implements OnInit {
             this.percentProgress = this.interopService.State.Progress.ProcessedSize / this.interopService.State.Progress.TotalSize * 100;
             this.totalFileSizeFormatted = this.formatBytes(this.interopService.State.Progress.TotalSize);
             this.progressFileSizeFormatted = this.formatBytes(this.interopService.State.Progress.ProcessedSize);
+            //in seconds
+            console.log(this.interopService.State.Progress.ProcessedSize / this.interopService.State.Progress.DownloadSpeed);
+            this.eta = this.formatTime((this.interopService.State.Progress.TotalSize - this.interopService.State.Progress.ProcessedSize) / this.interopService.State.Progress.DownloadSpeed);
             this.statusMessage = "Updating...";
           break;
         case CurrentState.UP_TO_DATE:
@@ -206,5 +210,21 @@ export class HomeComponent implements OnInit {
         this.startPatchProcess();
         break;
     }  
+  }
+
+  formatTime(timeInSeconds : number) : string
+  {
+    if(timeInSeconds > 3600)
+    {
+      var h = Math.round(timeInSeconds / 3600);
+      var m = Math.round((timeInSeconds - (h * 3600)) / 60);
+      return "" + h + " hour " + m + " minutes";
+    }
+    if(timeInSeconds > 60)
+    {
+      var m = Math.round(timeInSeconds / 60);
+      return m + " minutes";
+    }
+    return "< 1 minute"
   }
 }

@@ -14,7 +14,7 @@ export class IniService
     public anisotrophy : string = "0";
     public ntask : string = '0';
     public multisample : boolean = false;
-    public environment : string = 'LIVE';
+    public environment : string = null;
 
     constructor(private electronService : ElectronService)
     {
@@ -61,6 +61,10 @@ export class IniService
                     }
                 }
                 this.iniLoaded = true;
+                if(this.environment == null)
+                {
+                    this.config.push({key: 'ENVIRONMENT', value: 'LIVE'});
+                }
             }
             else
             {
@@ -75,6 +79,7 @@ export class IniService
                 this.config.push({key: 'MULTISAMPLE', value: null});
                 this.config.push({key: 'ENVIRONMENT', value: 'LIVE'});
             }
+
         })
     }
 

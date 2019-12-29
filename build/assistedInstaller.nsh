@@ -43,13 +43,17 @@
 
     # sanitize the MUI_PAGE_DIRECTORY result to make sure it has a application name sub-folder
     Function instFilesPre
+
       ${If} ${FileExists} "$INSTDIR\*"
         ${StrContains} $0 "${APP_FILENAME}" $INSTDIR
         ${If} $0 == ""
           StrCpy $INSTDIR "$INSTDIR\${APP_FILENAME}"
         ${endIf}
       ${endIf}
-      StrCpy $INSTDIR "$INSTDIR\Launcher"
+      ${StrContains} $1 "\Launcher" $INSTDIR
+      ${If} $1 == ""
+        StrCpy $INSTDIR "$INSTDIR\Launcher"
+      ${endIf}
     FunctionEnd
   !endif
   

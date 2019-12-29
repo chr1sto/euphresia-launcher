@@ -20,13 +20,14 @@ const async = require('async');
 
 
 var mEnvironments : { [id: string] : EuphresiaEnvironment; } = {}
-/*
-mEnvironments["LIVE"] = { PatchRoot: 'http://patch.euphresia-flyff.com/', ClientPath: path.resolve(path.dirname(app.getPath('exe')),'..\\Client\\') + '\\' }
-mEnvironments["PBE"] = { PatchRoot: 'http://patch.pbe.euphresia-flyff.com/', ClientPath: path.resolve(path.dirname(app.getPath('exe')),'..\\Client_PBE\\') + '\\' }
-*/
-mEnvironments["LIVE"] = { PatchRoot: 'http://patch.euphresia-flyff.com/', ClientPath: 'C:\\Program Files\\Euphresia Flyff\\Client\\' }
-mEnvironments["PBE"] = { PatchRoot: 'http://patch.pbe.euphresia-flyff.com/', ClientPath: 'C:\\Program Files\\Euphresia Flyff\\Client_PBE\\'  }
 
+mEnvironments["LIVE"] = { PatchRoot: 'http://patch.euphresia-flyff.com/', ClientPath: path.resolve(path.dirname(app.getPath('exe')),'..\\Client\\') + '\\' }
+mEnvironments["PBE"] = { PatchRoot: 'http://pbe.euphresia-flyff.com/', ClientPath: path.resolve(path.dirname(app.getPath('exe')),'..\\Client_PBE\\') + '\\' }
+
+/*
+mEnvironments["LIVE"] = { PatchRoot: 'http://patch.euphresia-flyff.com/', ClientPath: 'C:\\Program Files\\Euphresia Flyff\\Client\\' }
+mEnvironments["PBE"] = { PatchRoot: 'http://pbe.euphresia-flyff.com/', ClientPath: 'C:\\Program Files\\Euphresia Flyff\\Client_PBE\\'  }
+*/
 var currentEnvironment = mEnvironments["LIVE"];
 
 let win, serve;
@@ -338,6 +339,19 @@ const startGame = (id) =>
             runningClients.splice(i,1);
           }
         }
+        if(code != 0)
+        {
+          try
+          {
+            notifyError("["+JSON.stringify(code)+","+JSON.stringify(signal)+"]",true);
+          }
+          catch(ex)
+          {
+            notifyError(ex,true);
+          }
+
+          
+        }
         notifyError(code + '...' + signal);
         ///TODO?
         //event.sender.send('update-client-list',runningClients);
@@ -503,8 +517,9 @@ const loadLauncherConfig = (callback) =>
       }) 
 
       rl.on('close',() => {
-        if(!flagEnv) configEntries.push({key: 'environment', value: 'LIVE'});
-        if(!flagAA) configEntries.push({key: 'autoupdate', value: '1'});
+        //if(!flagEnv) configEntries.push({key: 'environment', value: 'LIVE'});
+        //if(!flagAA) configEntries.push({key: 'autoupdate', value: '1'});
+        callback();
       })
     }
     else
@@ -531,10 +546,15 @@ const writeIni = () => {
         launcherIniContent += "autoupdate " + obj.value + '\r\n';
         break;
       case 'ENVIRONMENT':
-        launcherIniContent += "environment " + obj.value + '\r\n';
-        if(eEnv != obj.value && setEnvironment(obj.value)) {
-          eEnv = obj.value;
+        if(!launcherIniContent.includes('environment'))
+        {
+          launcherIniContent += "environment " + obj.value + '\r\n';
+          if(eEnv != obj.value && setEnvironment(obj.value)) {
+            eEnv = obj.value;
+          }
+
         }
+        break;
       default:
         iniContent += obj.key + ' ' + obj.value + '\r\n';
         break;

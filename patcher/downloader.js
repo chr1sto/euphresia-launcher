@@ -40,6 +40,7 @@ var models_1 = require("./models");
 var request = require("request-promise");
 var async = require("async");
 var fs = require("fs-extra");
+var path = require("path");
 var Downloader = /** @class */ (function () {
     function Downloader(requestLimit) {
         this.requestLimit = requestLimit;
@@ -120,6 +121,9 @@ var Downloader = /** @class */ (function () {
                         _a.label = 1;
                     case 1:
                         _a.trys.push([1, 4, , 5]);
+                        if (!fs.existsSync(path.dirname(file.Dir))) {
+                            fs.mkdirSync(path.dirname(file.Dir));
+                        }
                         return [4 /*yield*/, request.get(file.Url, {
                                 gzip: true,
                                 resolveWithFullResponse: true,

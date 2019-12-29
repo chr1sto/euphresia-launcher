@@ -2,7 +2,8 @@ import { LiteEvent } from "./liteEvent";
 import { PatchEntry, ProgressEntry } from "./models";
 import * as request from 'request-promise';
 import * as async from 'async';
-import * as fs from 'fs-extra'
+import * as fs from 'fs-extra';
+import * as path from 'path';
 
 
 
@@ -86,6 +87,11 @@ class Downloader
         var start = Date.now();
         try
         {
+            if(!fs.existsSync(path.dirname(file.Dir)))
+            {
+                fs.mkdirSync(path.dirname(file.Dir));
+            }
+
             const res = await request.get(file.Url, {
                 gzip: true,
                 resolveWithFullResponse: true,
