@@ -49,11 +49,6 @@
     CreateDirectory "$PARENTDIR2\Music"
     CreateDirectory "$PARENTDIR2\Sound"
     CreateDirectory "$PARENTDIR2\binary"
-
-    CopyFiles /SILENT "$PARENTDIR\binary" "$PARENTDIR2\binary"
-    CopyFiles /SILENT "$PARENTDIR\data" "$PARENTDIR2\data"
-    CopyFiles /SILENT "$PARENTDIR\Music" "$PARENTDIR2\Music"
-    CopyFiles /SILENT "$PARENTDIR\Sound" "$PARENTDIR2\Sound"
   ${EndIf}
 
   RMDir /r "$INSTDIR\client"
