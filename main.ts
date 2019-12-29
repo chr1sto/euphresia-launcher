@@ -338,7 +338,7 @@ const startGame = (id) =>
           {
             runningClients.splice(i,1);
           }
-        }
+        }        
         if(code != 0)
         {
           try
@@ -352,7 +352,6 @@ const startGame = (id) =>
 
           
         }
-        notifyError(code + '...' + signal);
         ///TODO?
         //event.sender.send('update-client-list',runningClients);
       })
