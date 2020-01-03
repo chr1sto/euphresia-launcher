@@ -43,6 +43,7 @@ export class SelectAccountComponent implements OnInit, OnDestroy {
 
   open()
   {
+      this.selectAccService.updateGameAccounts();
       this.element.style.display = 'block';
       document.body.classList.add('modal-open');
       this.opened = true;

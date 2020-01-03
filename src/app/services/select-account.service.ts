@@ -35,7 +35,12 @@ export class SelectAccountService
 
     public updateGameAccounts()
     {
-      this.gameAccountService.gameAccountGet(this.iniService.environment).pipe(
+      var env = this.iniService.environment;
+      if(!this.iniService.environment)
+      {
+        env = "LIVE";
+      }
+      this.gameAccountService.gameAccountGet(env).pipe(
         map(
           result => {
             this.gameAccounts = result.data.sort(this.compare);

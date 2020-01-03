@@ -20,14 +20,14 @@ const async = require('async');
 
 
 var mEnvironments : { [id: string] : EuphresiaEnvironment; } = {}
-
+/*
 mEnvironments["LIVE"] = { PatchRoot: 'http://patch.euphresia-flyff.com/', ClientPath: path.resolve(path.dirname(app.getPath('exe')),'..\\Client\\') + '\\' }
 mEnvironments["PBE"] = { PatchRoot: 'http://pbe.euphresia-flyff.com/', ClientPath: path.resolve(path.dirname(app.getPath('exe')),'..\\Client_PBE\\') + '\\' }
+*/
 
-/*
 mEnvironments["LIVE"] = { PatchRoot: 'http://patch.euphresia-flyff.com/', ClientPath: 'C:\\Program Files\\Euphresia Flyff\\Client\\' }
 mEnvironments["PBE"] = { PatchRoot: 'http://pbe.euphresia-flyff.com/', ClientPath: 'C:\\Program Files\\Euphresia Flyff\\Client_PBE\\'  }
-*/
+
 var currentEnvironment = mEnvironments["LIVE"];
 
 let win, serve;
